@@ -127,8 +127,8 @@ class CiviCRM_Profile_Sync_ACF_Mapping {
 	public function __construct( $acf_loader ) {
 
 		// Store references to objects.
-		$this->plugin = $parent->acf_loader->plugin;
-		$this->acf_loader = $parent->acf_loader;
+		$this->plugin = $acf_loader->plugin;
+		$this->acf_loader = $acf_loader;
 
 		// Init when this plugin is loaded.
 		add_action( 'cwps/acf/loaded', [ $this, 'initialise' ] );

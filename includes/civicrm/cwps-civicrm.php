@@ -68,6 +68,15 @@ class CiviCRM_WP_Profile_Sync_CiviCRM {
 	public $custom_field;
 
 	/**
+	 * CiviCRM Custom Group object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $custom_group The CiviCRM Custom Group object.
+	 */
+	public $custom_group;
+
+	/**
 	 * CiviCRM Email object.
 	 *
 	 * @since 0.4
@@ -151,6 +160,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM {
 		require CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/civicrm/cwps-civicrm-contact.php';
 		require CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/civicrm/cwps-civicrm-contact-field.php';
 		require CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/civicrm/cwps-civicrm-custom-field.php';
+		require CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/civicrm/cwps-civicrm-custom-group.php';
 		require CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/civicrm/cwps-civicrm-email.php';
 		require CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/civicrm/cwps-civicrm-website.php';
 		require CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/civicrm/cwps-civicrm-bulk.php';
@@ -171,6 +181,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM {
 		$this->contact = new CiviCRM_WP_Profile_Sync_CiviCRM_Contact( $this );
 		$this->contact_field = new CiviCRM_WP_Profile_Sync_CiviCRM_Contact_Field( $this );
 		$this->custom_field = new CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field( $this );
+		$this->custom_group = new CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group( $this );
 		$this->email = new CiviCRM_WP_Profile_Sync_CiviCRM_Email( $this );
 		$this->website = new CiviCRM_WP_Profile_Sync_CiviCRM_Website( $this );
 		$this->bulk = new CiviCRM_WP_Profile_Sync_CiviCRM_Bulk( $this );
