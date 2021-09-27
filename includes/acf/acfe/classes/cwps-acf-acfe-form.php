@@ -23,6 +23,15 @@ defined( 'ABSPATH' ) || exit;
 class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 
 	/**
+	 * Plugin object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $plugin The plugin object.
+	 */
+	public $plugin;
+
+	/**
 	 * ACF Loader object.
 	 *
 	 * @since 0.5
@@ -78,16 +87,11 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 	 */
 	public function __construct( $parent ) {
 
-		// Store reference to ACF Loader object.
+		// Store references to objects.
+		$this->plugin = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-
-		// Store reference to CiviCRM object.
 		$this->civicrm = $this->acf_loader->civicrm;
-
-		// Store reference to ACF object.
 		$this->acf = $this->acf_loader->acf;
-
-		// Store reference to parent.
 		$this->acfe = $parent;
 
 		// Init when this plugin is loaded.
@@ -461,9 +465,9 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 
 		// Define Setting Field.
 		$setting_field = [
-			'key' => $this->acf_loader->civicrm->acf_field_key_get(),
+			'key' => $this->civicrm->acf_field_key_get(),
 			'label' => __( 'CiviCRM Field', 'civicrm-wp-profile-sync' ),
-			'name' => $this->acf_loader->civicrm->acf_field_key_get(),
+			'name' => $this->civicrm->acf_field_key_get(),
 			'type' => 'select',
 			'instructions' => __( 'Choose the CiviCRM Field that this ACF Field should sync with. (Optional)', 'civicrm-wp-profile-sync' ),
 			'default_value' => '',

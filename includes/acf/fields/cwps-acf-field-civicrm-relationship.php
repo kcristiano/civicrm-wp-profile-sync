@@ -23,6 +23,15 @@ defined( 'ABSPATH' ) || exit;
 class CiviCRM_Profile_Sync_Custom_CiviCRM_Relationship extends acf_field {
 
 	/**
+	 * Plugin object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $plugin The plugin object.
+	 */
+	public $plugin;
+
+	/**
 	 * ACF Loader object.
 	 *
 	 * @since 0.4
@@ -140,13 +149,10 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Relationship extends acf_field {
 	 */
 	public function __construct( $parent ) {
 
-		// Store reference to ACF Loader object.
+		// Store references to objects.
+		$this->plugin = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-
-		// Store reference to ACF Utilities.
 		$this->acf = $parent;
-
-		// Store reference to CiviCRM Utilities.
 		$this->civicrm = $this->acf_loader->civicrm;
 
 		// Define label.
@@ -233,7 +239,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Relationship extends acf_field {
 			$contact_ids = array_map( 'intval', acf_array( $field['value'] ) );
 
 			// Get existing Contacts.
-			$contacts = $this->civicrm->contact->get_by_ids( $contact_ids );
+			$contacts = $this->plugin->civicrm->contact->get_by_ids( $contact_ids );
 
 			// Maybe append them.
 			if ( ! empty( $contacts ) ) {
@@ -714,7 +720,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Relationship extends acf_field {
 		}
 
 		// Get separated array of Contact Types.
-		$contact_types = $this->civicrm->contact_type->hierarchy_separate( $hierarchy );
+		$contact_types = $this->plugin->civicrm->contact_type->hierarchy_separate( $hierarchy );
 
 		// Filter fields to include each Relationship in both directions when possible.
 		foreach ( $relationships as $relationship ) {

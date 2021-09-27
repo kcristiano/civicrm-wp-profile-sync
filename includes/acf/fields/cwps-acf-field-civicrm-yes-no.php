@@ -23,6 +23,15 @@ defined( 'ABSPATH' ) || exit;
 class CiviCRM_Profile_Sync_Custom_CiviCRM_Yes_No extends acf_field {
 
 	/**
+	 * Plugin object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $plugin The plugin object.
+	 */
+	public $plugin;
+
+	/**
 	 * ACF Loader object.
 	 *
 	 * @since 0.4
@@ -145,13 +154,10 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Yes_No extends acf_field {
 	 */
 	public function __construct( $parent ) {
 
-		// Store reference to ACF Loader object.
+		// Store references to objects.
+		$this->plugin = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-
-		// Store reference to ACF Utilities.
 		$this->acf = $parent;
-
-		// Store reference to CiviCRM Utilities.
 		$this->civicrm = $this->acf_loader->civicrm;
 
 		// Define label.

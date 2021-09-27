@@ -23,6 +23,15 @@ defined( 'ABSPATH' ) || exit;
 class CiviCRM_Profile_Sync_ACF_CiviCRM_Instant_Messenger extends CiviCRM_Profile_Sync_ACF_CiviCRM_Base {
 
 	/**
+	 * Plugin object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $plugin The plugin object.
+	 */
+	public $plugin;
+
+	/**
 	 * ACF Loader object.
 	 *
 	 * @since 0.4
@@ -98,10 +107,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Instant_Messenger extends CiviCRM_Profile
 	 */
 	public function __construct( $parent ) {
 
-		// Store reference to ACF Loader object.
+		// Store references to objects.
+		$this->plugin = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-
-		// Store reference to parent.
 		$this->civicrm = $parent;
 
 		// Init when the CiviCRM object is loaded.
@@ -1007,20 +1015,20 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Instant_Messenger extends CiviCRM_Profile
 		$acf_im = $this->prepare_from_civicrm( $im );
 
 		// Get the Contact data.
-		$contact = $this->acf_loader->civicrm->contact->get_by_id( $im->contact_id );
+		$contact = $this->plugin->civicrm->contact->get_by_id( $im->contact_id );
 
 		// Get originating Entity.
 		$entity = $this->acf_loader->mapper->entity_get();
 
 		// Test if any of this Contact's Contact Types is mapped to a Post Type.
-		$post_types = $this->acf_loader->civicrm->contact->is_mapped( $contact, 'create' );
+		$post_types = $this->civicrm->contact->is_mapped( $contact, 'create' );
 		if ( $post_types !== false ) {
 
 			// Handle each Post Type in turn.
 			foreach ( $post_types as $post_type ) {
 
 				// Get the Post ID for this Contact.
-				$post_id = $this->acf_loader->civicrm->contact->is_mapped_to_post( $contact, $post_type );
+				$post_id = $this->civicrm->contact->is_mapped_to_post( $contact, $post_type );
 
 				// Skip if not mapped or Post doesn't yet exist.
 				if ( $post_id === false ) {
@@ -1665,7 +1673,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Instant_Messenger extends CiviCRM_Profile
 		}
 
 		// Skip if the CiviCRM Field key isn't there or isn't populated.
-		$key = $this->acf_loader->civicrm->acf_field_key_get();
+		$key = $this->civicrm->acf_field_key_get();
 		if ( ! array_key_exists( $key, $field ) || empty( $field[$key] ) ) {
 			return $field;
 		}
@@ -1733,7 +1741,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Instant_Messenger extends CiviCRM_Profile
 		}
 
 		// Skip if the CiviCRM Field key isn't there or isn't populated.
-		$key = $this->acf_loader->civicrm->acf_field_key_get();
+		$key = $this->civicrm->acf_field_key_get();
 		if ( ! array_key_exists( $key, $field ) || empty( $field[$key] ) ) {
 			return $field;
 		}

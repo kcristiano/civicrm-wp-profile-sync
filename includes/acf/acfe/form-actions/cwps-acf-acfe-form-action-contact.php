@@ -105,19 +105,11 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 	 */
 	public function __construct( $parent ) {
 
-		// Store reference to plugin object.
+		// Store references to objects.
 		$this->plugin = $parent->acf_loader->plugin;
-
-		// Store reference to ACF Loader object.
 		$this->acf_loader = $parent->acf_loader;
-
-		// Store reference to ACFE object.
 		$this->acfe = $parent->acfe;
-
-		// Store reference to Form object.
 		$this->form = $parent;
-
-		// Store reference to CiviCRM object.
 		$this->civicrm = $this->acf_loader->civicrm;
 
 		// Label this Form Action.
@@ -164,8 +156,8 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 			}
 		}
 
-		// Get the Custom Groups and Fields for all Contact Types.
-		$this->custom_fields = $this->civicrm->custom_group->get_for_contacts();
+		// Get the Custom Fields for all Contact Types.
+		$this->custom_fields = $this->plugin->civicrm->custom_group->get_for_all_contact_types();
 		$this->custom_field_ids = [];
 
 		// Populate mapping Fields.
@@ -320,7 +312,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 		// Maybe get the Contact.
 		if ( ! empty( $contact_id ) ) {
-			$contact = $this->civicrm->contact->get_by_id( $contact_id );
+			$contact = $this->plugin->civicrm->contact->get_by_id( $contact_id );
 		}
 
 		// Bail if we don't find a Contact.
@@ -340,7 +332,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 		}
 
 		// Get the Custom Field values for this Contact.
-		$custom_field_values = $this->civicrm->custom_field->values_get_by_contact_id( $contact['id'], $this->custom_field_ids );
+		$custom_field_values = $this->plugin->civicrm->custom_field->values_get_by_contact_id( $contact['id'], $this->custom_field_ids );
 		foreach ( $custom_field_values as $custom_field_id => $custom_field_value ) {
 			$contact[ 'custom_' . $custom_field_id ] = $custom_field_value;
 		}
@@ -2745,14 +2737,14 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 		// Get the Contact Type.
 		$contact_type_id = get_sub_field( $this->field_key . 'contact_types' );
-		$contact_type = $this->civicrm->contact_type->get_data( $contact_type_id, 'id' );
+		$contact_type = $this->plugin->civicrm->contact_type->get_data( $contact_type_id, 'id' );
 		if ( ! empty( $contact_type ) ) {
 			$data['contact_type'] = $contact_type['name'];
 		}
 
 		// Get the Contact Sub-type.
 		$contact_sub_type_id = get_sub_field( $this->field_key . 'contact_sub_types' );
-		$contact_sub_type = $this->civicrm->contact_type->get_data( $contact_sub_type_id, 'id' );
+		$contact_sub_type = $this->plugin->civicrm->contact_type->get_data( $contact_sub_type_id, 'id' );
 		if ( ! empty( $contact_sub_type ) ) {
 			$data['contact_sub_type'] = $contact_sub_type['name'];
 		}
@@ -2793,7 +2785,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 		// Create or update depending on the presence of an ID.
 		if ( $contact_id === false ) {
-			$result = $this->civicrm->contact->create( $contact_data );
+			$result = $this->plugin->civicrm->contact->create( $contact_data );
 		} else {
 
 			// Use the Contact ID to update.
@@ -2801,7 +2793,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 
 			// We need to ensure any existing Contact Sub-types are retained.
 			if ( ! empty( $contact_data['contact_sub_type'] ) ) {
-				$existing_contact = $this->civicrm->contact->get_by_id( $contact_id );
+				$existing_contact = $this->plugin->civicrm->contact->get_by_id( $contact_id );
 				if ( is_array( $existing_contact['contact_sub_type'] ) ) {
 					if ( ! in_array( $contact_data['contact_sub_type'], $existing_contact['contact_sub_type'] ) ) {
 						$existing_contact['contact_sub_type'][] = $contact_data['contact_sub_type'];
@@ -2811,7 +2803,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 			}
 
 			// Okay, we're good to update now.
-			$result = $this->civicrm->contact->update( $contact_data );
+			$result = $this->plugin->civicrm->contact->update( $contact_data );
 
 		}
 
@@ -2821,7 +2813,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 		}
 
 		// Get the full Contact data.
-		$contact = $this->civicrm->contact->get_by_id( $result['id'] );
+		$contact = $this->plugin->civicrm->contact->get_by_id( $result['id'] );
 
 		// Add to the Domain Group if necessary.
 		$domain_group_id = $this->civicrm->get_setting( 'domain_group_id' );

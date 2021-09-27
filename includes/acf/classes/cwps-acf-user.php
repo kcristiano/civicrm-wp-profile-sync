@@ -1728,7 +1728,7 @@ class CiviCRM_Profile_Sync_ACF_User {
 		$contact_fields = [];
 
 		// Users can be mapped to any Contact Type.
-		$contact_types = $this->civicrm->contact_type->types_get_nested();
+		$contact_types = $this->plugin->civicrm->contact_type->types_get_nested();
 
 		// Get the Contact Fields for each CiviCRM Contact Type.
 		foreach ( $contact_types as $contact_type ) {
@@ -1751,7 +1751,7 @@ class CiviCRM_Profile_Sync_ACF_User {
 			$type_name = $contact_type['name'];
 
 			// Get the Custom Fields for this Contact Type.
-			$custom_fields_for_type = $this->civicrm->custom_field->get_for_entity_type( $type_name, '' );
+			$custom_fields_for_type = $this->plugin->civicrm->custom_field->get_for_entity_type( $type_name, '' );
 
 			// Merge with return array.
 			$custom_fields = array_merge( $custom_fields, $custom_fields_for_type );
@@ -1768,7 +1768,7 @@ class CiviCRM_Profile_Sync_ACF_User {
 				$subtype_name = $contact_subtype['name'];
 
 				// Get the Custom Fields for this Contact Subtype.
-				$custom_fields_for_type = $this->civicrm->custom_field->get_for_entity_type( $type_name, $subtype_name );
+				$custom_fields_for_type = $this->plugin->civicrm->custom_field->get_for_entity_type( $type_name, $subtype_name );
 
 				// Merge with return array.
 				$custom_fields = array_merge( $custom_fields, $custom_fields_for_type );
@@ -1849,7 +1849,7 @@ class CiviCRM_Profile_Sync_ACF_User {
 		}
 
 		// Users can be mapped to any Contact Type.
-		$contact_types = $this->civicrm->contact_type->types_get_nested();
+		$contact_types = $this->plugin->civicrm->contact_type->types_get_nested();
 
 		// Get the Custom Fields for each CiviCRM Contact Type.
 		foreach ( $contact_types as $contact_type ) {
@@ -1858,7 +1858,7 @@ class CiviCRM_Profile_Sync_ACF_User {
 			$type_name = $contact_type['name'];
 
 			// Get the Custom Fields for this Contact Type.
-			$custom_fields_for_type = $this->civicrm->custom_field->get_for_entity_type( $type_name, '' );
+			$custom_fields_for_type = $this->plugin->civicrm->custom_field->get_for_entity_type( $type_name, '' );
 
 			// Merge with return array.
 			$custom_fields = array_merge( $custom_fields, $custom_fields_for_type );
@@ -1875,7 +1875,7 @@ class CiviCRM_Profile_Sync_ACF_User {
 				$subtype_name = $contact_subtype['name'];
 
 				// Get the Custom Fields for this Contact Subtype.
-				$custom_fields_for_type = $this->civicrm->custom_field->get_for_entity_type( $type_name, $subtype_name );
+				$custom_fields_for_type = $this->plugin->civicrm->custom_field->get_for_entity_type( $type_name, $subtype_name );
 
 				// Merge with return array.
 				$custom_fields = array_merge( $custom_fields, $custom_fields_for_type );
@@ -1913,7 +1913,7 @@ class CiviCRM_Profile_Sync_ACF_User {
 		}
 
 		// Users can be mapped to any Contact Type.
-		$contact_types = $this->civicrm->contact_type->types_get_nested();
+		$contact_types = $this->plugin->civicrm->contact_type->types_get_nested();
 
 		// Get the Custom Fields for each CiviCRM Contact Type.
 		foreach ( $contact_types as $contact_type ) {

@@ -158,19 +158,11 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Address_Country extends acf_field {
 	 */
 	public function __construct( $parent ) {
 
-		// Store reference to plugin object.
+		// Store references to objects.
 		$this->plugin = $parent->acf_loader->plugin;
-
-		// Store reference to ACF Loader object.
 		$this->acf_loader = $parent->acf_loader;
-
-		// Store reference to ACF Utilities.
 		$this->acf = $parent->acf_loader->acf;
-
-		// Store reference to ACFE Utilities.
 		$this->acfe = $parent;
-
-		// Store reference to CiviCRM Utilities.
 		$this->civicrm = $this->acf_loader->civicrm;
 
 		// Define label.

@@ -48,6 +48,42 @@ class CiviCRM_WP_Profile_Sync_BuddyPress {
 	 */
 	public $bp = false;
 
+	/**
+	 * BuddyBoss flag.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var bool $is_buddyboss BuddyBoss flag. True when BuddyBoss is installed.
+	 */
+	public $is_buddyboss = false;
+
+	/**
+	 * BuddyBoss Compatibility object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $buddyboss The BuddyBoss Compatibility object.
+	 */
+	public $buddyboss;
+
+	/**
+	 * BuddyPress Member Type object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $member_type The BuddyPress Member Type object.
+	 */
+	public $member_type;
+
+	/**
+	 * BuddyPress Field object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $field The BuddyPress Field object.
+	 */
+	public $field;
+
 
 
 	/**
@@ -86,6 +122,20 @@ class CiviCRM_WP_Profile_Sync_BuddyPress {
 			return;
 		}
 
+		// Save BuddyBoss flag.
+		if ( defined( 'BP_PLATFORM_VERSION' ) && BP_PLATFORM_VERSION ) {
+			$this->is_buddyboss = true;
+
+			// NOTE: bp_hide_last_name()
+
+		}
+
+		// Include files.
+		$this->include_files();
+
+		// Set up objects and references.
+		$this->setup_objects();
+
 		// Register hooks.
 		$this->register_hooks();
 
@@ -95,6 +145,46 @@ class CiviCRM_WP_Profile_Sync_BuddyPress {
 		 * @since 0.4
 		 */
 		do_action( 'cwps/buddypress/loaded' );
+
+	}
+
+
+
+	/**
+	 * Include files.
+	 *
+	 * @since 0.5
+	 */
+	public function include_files() {
+
+		// Include class files.
+		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-member-type.php';
+		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-field.php';
+
+		// Maybe include BuddyBoss class.
+		if ( $this->is_buddyboss === true ) {
+			include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-buddyboss.php';
+		}
+
+	}
+
+
+
+	/**
+	 * Set up this plugin's objects.
+	 *
+	 * @since 0.5
+	 */
+	public function setup_objects() {
+
+		// Init objects.
+		$this->member_type = new CiviCRM_Profile_Sync_BP_Member_Type( $this );
+		$this->field = new CiviCRM_Profile_Sync_BP_xProfile_Field( $this );
+
+		// Maybe init BuddyBoss object.
+		if ( $this->is_buddyboss === true ) {
+			$this->buddyboss = new CiviCRM_Profile_Sync_BP_BuddyBoss( $this );
+		}
 
 	}
 
@@ -144,7 +234,7 @@ class CiviCRM_WP_Profile_Sync_BuddyPress {
 		// Callbacks for new and edited BuddyPress User actions.
 		add_action( 'cwps/mapper/bp_xprofile_edited', [ $this, 'user_edited' ], 20 );
 		add_action( 'cwps/mapper/bp_signup_user', [ $this, 'user_edited' ], 20 );
-		add_action( 'cwps/mapper/bp_activated_user', [ $this, 'user_edited' ], 20 );
+		//add_action( 'cwps/mapper/bp_activated_user', [ $this, 'user_edited' ], 20 );
 
 	}
 
@@ -160,7 +250,7 @@ class CiviCRM_WP_Profile_Sync_BuddyPress {
 		// Remove callbacks for new and edited BuddyPress User actions.
 		remove_action( 'cwps/mapper/bp_xprofile_edited', [ $this, 'user_edited' ], 20 );
 		remove_action( 'cwps/mapper/bp_signup_user', [ $this, 'user_edited' ], 20 );
-		remove_action( 'cwps/mapper/bp_activated_user', [ $this, 'user_edited' ], 20 );
+		//remove_action( 'cwps/mapper/bp_activated_user', [ $this, 'user_edited' ], 20 );
 
 	}
 
@@ -181,7 +271,7 @@ class CiviCRM_WP_Profile_Sync_BuddyPress {
 	public function user_edited( $args ) {
 
 		// Bail if BuddyPress is not set to sync to WordPress.
-		if ( ! bp_disable_profile_sync() ) {
+		if ( bp_disable_profile_sync() ) {
 			return;
 		}
 

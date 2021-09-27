@@ -23,6 +23,15 @@ defined( 'ABSPATH' ) || exit;
 class CiviCRM_Profile_Sync_ACF_CiviCRM {
 
 	/**
+	 * Plugin object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $plugin The plugin object.
+	 */
+	public $plugin;
+
+	/**
 	 * ACF Loader object.
 	 *
 	 * @since 0.4
@@ -138,15 +147,6 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM {
 	 * @var object $contact_field The CiviCRM Contact Field object.
 	 */
 	public $contact_field;
-
-	/**
-	 * CiviCRM Custom Group object.
-	 *
-	 * @since 0.4
-	 * @access public
-	 * @var object $custom_group The CiviCRM Custom Group object.
-	 */
-	public $custom_group;
 
 	/**
 	 * CiviCRM Custom Field object.
@@ -316,7 +316,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM {
 			return;
 		}
 
-		// Store reference to ACF Loader object.
+		// Store references to objects.
+		$this->plugin = $acf_loader->plugin;
 		$this->acf_loader = $acf_loader;
 
 		// Init when this plugin is loaded.
@@ -376,7 +377,6 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM {
 		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/acf/classes/cwps-acf-participant-field.php';
 
 		// Include Standalone class files.
-		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/acf/classes/cwps-acf-custom-group.php';
 		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/acf/classes/cwps-acf-custom-field.php';
 		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/acf/classes/cwps-acf-civicrm-group.php';
 		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/acf/classes/cwps-acf-civicrm-membership.php';
@@ -431,7 +431,6 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM {
 		$this->participant_role = new CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Role( $this );
 
 		// Init Standalone objects.
-		$this->custom_group = new CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Group( $this );
 		$this->custom_field = new CiviCRM_Profile_Sync_ACF_CiviCRM_Custom_Field( $this );
 		$this->group = new CiviCRM_Profile_Sync_ACF_CiviCRM_Group( $this );
 		$this->membership = new CiviCRM_Profile_Sync_ACF_CiviCRM_Membership( $this );
@@ -648,64 +647,6 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM {
 
 
 	/**
-	 * Get the Option Group for a Case Field.
-	 *
-	 * @since 0.5
-	 *
-	 * @param string $name The name of the option group.
-	 * @return array $option_group The array of option group data.
-	 */
-	public function option_group_get( $name ) {
-
-		// Only do this once per named Option Group.
-		static $pseudocache;
-		if ( isset( $pseudocache[$name] ) ) {
-			return $pseudocache[$name];
-		}
-
-		// Init return.
-		$options = [];
-
-		// Try and init CiviCRM.
-		if ( ! $this->is_initialised() ) {
-			return $options;
-		}
-
-		// Define query params.
-		$params = [
-			'name' => $name,
-			'version' => 3,
-		];
-
-		// Call the CiviCRM API.
-		$result = civicrm_api( 'OptionGroup', 'get', $params );
-
-		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
-			return $options;
-		}
-
-		// Bail if there are no results.
-		if ( empty( $result['values'] ) ) {
-			return $case_data;
-		}
-
-		// The result set should contain only one item.
-		$options = array_pop( $result['values'] );
-
-		// Maybe add to pseudo-cache.
-		if ( ! isset( $pseudocache[$name] ) ) {
-			$pseudocache[$name] = $options;
-		}
-
-		// --<
-		return $options;
-
-	}
-
-
-
-	/**
 	 * Get the values in a given Option Group.
 	 *
 	 * @since 0.5
@@ -782,7 +723,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM {
 		$default = false;
 
 		// Get the Option Group.
-		$option_group = $this->option_group_get( $name );
+		$option_group = $this->plugin->civicrm->option_group_get( $name );
 		if ( empty( $option_group ) ) {
 			return $default;
 		}

@@ -23,6 +23,15 @@ defined( 'ABSPATH' ) || exit;
 class CiviCRM_Profile_Sync_ACF_CiviCRM_Case {
 
 	/**
+	 * Plugin object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $plugin The plugin object.
+	 */
+	public $plugin;
+
+	/**
 	 * ACF Loader object.
 	 *
 	 * @since 0.5
@@ -73,10 +82,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case {
 	 */
 	public function __construct( $parent ) {
 
-		// Store reference to ACF Loader object.
+		// Store references to objects.
+		$this->plugin = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-
-		// Store reference to parent.
 		$this->civicrm = $parent;
 
 		// Init when the CiviCRM object is loaded.
@@ -456,7 +464,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case {
 		}
 
 		// Get the Post Type mapped to this Case Type.
-		$post_type = $this->acf_loader->civicrm->case_type->is_mapped_to_post_type( $case->case_type_id );
+		$post_type = $this->civicrm->case_type->is_mapped_to_post_type( $case->case_type_id );
 
 		// Skip if this Case Type is not mapped.
 		if ( $post_type === false ) {
@@ -1195,7 +1203,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case {
 		$case_data['details'] = $post->post_content;
 
 		// Always assign Case Type ID.
-		$case_data['case_type_id'] = $this->acf_loader->civicrm->case_type->id_get_for_post_type( $post->post_type );
+		$case_data['case_type_id'] = $this->civicrm->case_type->id_get_for_post_type( $post->post_type );
 
 		/*
 		// Set a status for the Case depending on the Post status.
@@ -1535,10 +1543,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case {
 		}
 
 		// Get the Case Fields for this ACF Field.
-		$case_fields = $this->acf_loader->civicrm->case_field->get_for_acf_field( $field );
+		$case_fields = $this->civicrm->case_field->get_for_acf_field( $field );
 
 		// Get the Custom Fields for CiviCRM Cases.
-		$custom_fields = $this->acf_loader->civicrm->custom_field->get_for_entity_type( 'Case', '' );
+		$custom_fields = $this->plugin->civicrm->custom_field->get_for_entity_type( 'Case', '' );
 
 		/**
 		 * Filter the Custom Fields.
@@ -1610,10 +1618,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case {
 		}
 
 		// Get the public fields on the Entity for this Field Type.
-		$fields_for_entity = $this->acf_loader->civicrm->case_field->data_get( $field['type'], 'public' );
+		$fields_for_entity = $this->civicrm->case_field->data_get( $field['type'], 'public' );
 
 		// Get the Custom Fields for this Entity.
-		$custom_fields = $this->acf_loader->civicrm->custom_field->get_for_entity_type( 'Case', '' );
+		$custom_fields = $this->plugin->civicrm->custom_field->get_for_entity_type( 'Case', '' );
 
 		/**
 		 * Filter the Custom Fields.
@@ -1660,7 +1668,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case {
 		}
 
 		// Get the public fields on the Entity for this Field Type.
-		$fields_for_entity = $this->acf_loader->civicrm->case_field->data_get( $field['type'], 'public' );
+		$fields_for_entity = $this->civicrm->case_field->data_get( $field['type'], 'public' );
 
 		// Prepend the ones that are needed in ACFE Forms (i.e. Subject and Details).
 		foreach ( $this->civicrm->case_field->bypass_fields as $name => $field_type ) {
@@ -1670,7 +1678,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case {
 		}
 
 		// Get the Custom Fields for this Entity.
-		$custom_fields = $this->acf_loader->civicrm->custom_field->get_for_entity_type( 'Case', '' );
+		$custom_fields = $this->plugin->civicrm->custom_field->get_for_entity_type( 'Case', '' );
 
 		/**
 		 * Filter the Custom Fields.
@@ -1807,7 +1815,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Case {
 		}
 
 		// Get the Custom Fields for CiviCRM Cases.
-		$entity_custom_fields = $this->acf_loader->civicrm->custom_field->get_for_entity_type( 'Case', '' );
+		$entity_custom_fields = $this->plugin->civicrm->custom_field->get_for_entity_type( 'Case', '' );
 
 		// Maybe merge with passed in array.
 		if ( ! empty( $entity_custom_fields ) ) {

@@ -21,6 +21,15 @@ defined( 'ABSPATH' ) || exit;
 class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_Existing_New extends acf_field {
 
 	/**
+	 * Plugin object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $plugin The plugin object.
+	 */
+	public $plugin;
+
+	/**
 	 * ACF Loader object.
 	 *
 	 * @since 0.5
@@ -138,13 +147,10 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_Existing_New extends acf_field
 	 */
 	public function __construct( $parent ) {
 
-		// Store reference to ACF Loader object.
+		// Store references to objects.
+		$this->plugin = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-
-		// Store reference to ACF object.
 		$this->acf = $parent->acf;
-
-		// Store reference to parent.
 		$this->acf_type = $parent;
 
 		// Define label.
@@ -745,7 +751,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_Existing_New extends acf_field
 
 		// Did we get one?
 		if ( ! empty( $contact_id ) ) {
-			$contact = $this->acf_loader->civicrm->contact->get_by_id( $contact_id );
+			$contact = $this->plugin->civicrm->contact->get_by_id( $contact_id );
 			$url = $this->acf_loader->civicrm->get_link( 'civicrm/contact/view', 'reset=1&cid=' . $contact_id );
 			$valid = sprintf(
 				__( 'It looks like this Contact already exists: %1$s %2$s', 'civicrm-wp-profile-sync' ),

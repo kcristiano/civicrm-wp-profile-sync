@@ -23,6 +23,15 @@ defined( 'ABSPATH' ) || exit;
 class CiviCRM_Profile_Sync_ACF_Post {
 
 	/**
+	 * Plugin object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $plugin The plugin object.
+	 */
+	public $plugin;
+
+	/**
 	 * ACF Loader object.
 	 *
 	 * @since 0.4
@@ -78,7 +87,8 @@ class CiviCRM_Profile_Sync_ACF_Post {
 	 */
 	public function __construct( $acf_loader ) {
 
-		// Store reference to ACF Loader object.
+		// Store references to objects.
+		$this->plugin = $acf_loader->plugin;
 		$this->acf_loader = $acf_loader;
 
 		// Init when this plugin is loaded.
@@ -341,7 +351,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 		}
 
 		// Grab Contact.
-		$contact = $this->acf_loader->civicrm->contact->get_by_id( $contact_id );
+		$contact = $this->plugin->civicrm->contact->get_by_id( $contact_id );
 		if ( $contact === false ) {
 			return;
 		}
@@ -720,7 +730,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 	public function contact_sync( $args ) {
 
 		// Bail if this is not a Contact.
-		$top_level_types = $this->acf_loader->civicrm->contact_type->types_get_top_level();
+		$top_level_types = $this->plugin->civicrm->contact_type->types_get_top_level();
 		if ( ! in_array( $args['objectName'], $top_level_types ) ) {
 			return;
 		}
@@ -2146,7 +2156,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 		}
 
 		// Retrieve critical values.
-		$contact = $this->acf_loader->civicrm->contact->get_by_id( $participant->contact_id );
+		$contact = $this->plugin->civicrm->contact->get_by_id( $participant->contact_id );
 		if ( $contact === false ) {
 			return false;
 		}
@@ -2240,7 +2250,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 		}
 
 		// Retrieve Contact.
-		$contact = $this->acf_loader->civicrm->contact->get_by_id( $participant->contact_id );
+		$contact = $this->plugin->civicrm->contact->get_by_id( $participant->contact_id );
 		if ( $contact === false ) {
 			return false;
 		}

@@ -25,6 +25,15 @@ class CiviCRM_Profile_Sync_ACF_Shortcode_State {
 	/**
 	 * Plugin object.
 	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $plugin The plugin object.
+	 */
+	public $plugin;
+
+	/**
+	 * Plugin object.
+	 *
 	 * @since 0.4
 	 * @access public
 	 * @var object $acf_loader The ACF Loader object.
@@ -78,13 +87,9 @@ class CiviCRM_Profile_Sync_ACF_Shortcode_State {
 	 */
 	public function __construct( $parent ) {
 
-		// Store reference to ACF Loader object.
-		$this->acf_loader = $parent->acf_loader;
-
-		// Store reference to CiviCRM object.
+		// Store references to objects.
+		$this->plugin = $parent->acf_loader->plugin;
 		$this->civicrm = $parent->civicrm;
-
-		// Store reference to State object.
 		$this->addresses = $parent;
 
 		// Init when the CiviCRM State object is loaded.

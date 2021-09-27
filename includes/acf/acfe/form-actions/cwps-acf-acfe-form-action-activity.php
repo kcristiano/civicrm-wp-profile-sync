@@ -150,19 +150,11 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Activity extends CiviCRM_Profile
 	 */
 	public function __construct( $parent ) {
 
-		// Store reference to plugin object.
+		// Store references to objects.
 		$this->plugin = $parent->acf_loader->plugin;
-
-		// Store reference to ACF Loader object.
 		$this->acf_loader = $parent->acf_loader;
-
-		// Store reference to ACFE object.
 		$this->acfe = $parent->acfe;
-
-		// Store reference to Form object.
 		$this->form = $parent;
-
-		// Store reference to CiviCRM object.
 		$this->civicrm = $this->acf_loader->civicrm;
 
 		// Label this Form Action.
@@ -234,7 +226,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Activity extends CiviCRM_Profile
 		}
 
 		// Get the Custom Groups and Fields for all Activity Types.
-		$this->custom_fields = $this->civicrm->custom_group->get_for_activities();
+		$this->custom_fields = $this->plugin->civicrm->custom_group->get_for_activities();
 		$this->custom_field_ids = [];
 
 		// Populate mapping Fields.

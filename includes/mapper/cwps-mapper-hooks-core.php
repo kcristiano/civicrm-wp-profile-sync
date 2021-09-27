@@ -149,6 +149,11 @@ class CiviCRM_WP_Profile_Sync_Mapper_Hooks_Core {
 	 */
 	public function hooks_wordpress_add() {
 
+		// Bail if already added.
+		if ( has_action( 'user_register', [ $this, 'user_registered' ] ) ) {
+			return;
+		}
+
 		// Callbacks for new and edited WordPress User actions.
 		add_action( 'user_register', [ $this, 'user_registered' ], 9, 1 );
 		add_action( 'profile_update', [ $this, 'user_edited' ], 9, 2 );
@@ -179,10 +184,18 @@ class CiviCRM_WP_Profile_Sync_Mapper_Hooks_Core {
 	 */
 	public function hooks_buddypress_add() {
 
+		// Bail if already added.
+		if ( has_action( 'xprofile_updated_profile', [ $this, 'bp_xprofile_edited' ] ) ) {
+			return;
+		}
+
 		// Callbacks for new and edited BuddyPress User actions.
-		add_action( 'xprofile_updated_profile', [ $this, 'bp_xprofile_edited' ], 20, 3 );
-		add_action( 'bp_core_signup_user', [ $this, 'bp_signup_user' ], 20, 3 );
+		add_action( 'xprofile_updated_profile', [ $this, 'bp_xprofile_edited' ], 20, 5 );
+		add_action( 'bp_core_signup_user', [ $this, 'bp_signup_user' ], 20, 5 );
 		add_action( 'bp_core_activated_user', [ $this, 'bp_activated_user' ], 20, 3 );
+
+		// Callback for edits to individual BuddyPress xProfile Fields.
+		add_action( 'xprofile_data_after_save', [ $this, 'bp_field_edited' ], 20 );
 
 	}
 
@@ -200,6 +213,10 @@ class CiviCRM_WP_Profile_Sync_Mapper_Hooks_Core {
 		remove_action( 'bp_core_signup_user', [ $this, 'bp_signup_user' ], 20 );
 		remove_action( 'bp_core_activated_user', [ $this, 'bp_activated_user' ], 20 );
 
+		// Remove callback for edits to BuddyPress xProfile Fields.
+		remove_action( 'xprofile_updated_profile', [ $this, 'bp_fields_edited' ], 20 );
+		//remove_action( 'xprofile_data_after_save', [ $this, 'bp_field_edited' ], 20 );
+
 	}
 
 
@@ -210,6 +227,11 @@ class CiviCRM_WP_Profile_Sync_Mapper_Hooks_Core {
 	 * @since 0.4
 	 */
 	public function hooks_civicrm_add() {
+
+		// Bail if already added.
+		if ( has_action( 'civicrm_pre', [ $this, 'contact_pre_edit' ] ) ) {
+			return;
+		}
 
 		// Intercept Contact updates in CiviCRM.
 		//add_action( 'civicrm_pre', [ $this, 'contact_pre_create' ], 10, 4 );
@@ -347,18 +369,24 @@ class CiviCRM_WP_Profile_Sync_Mapper_Hooks_Core {
 
 
 	/**
-	 * Fires when a BuddyPress Profile has been edited.
+	 * Fires when a BuddyPress "Profile Group" has been edited.
+	 *
+	 * A "Profile Group" means a group of xProfile Fields as displayed in the UI.
+	 * The "xprofile_data_after_save" action fires for individual xProfile Fields
+	 * which may be too granular for our needs.
 	 *
 	 * @since 0.4
 	 *
-	 * @param integer $user_id The numeric ID of the WordPress User.
-	 * @param array $posted_field_ids The array of numeric IDs of the BuddyPress fields.
-	 * @param bool $errors True if there are errors, false otherwise.
+	 * @param integer $user_id The ID for the User whose Profile is being saved.
+	 * @param array $posted_field_ids The array of Field IDs that were edited.
+	 * @param bool $errors Whether or not any errors occurred.
+	 * @param array $old_values The array of original values before update.
+	 * @param array $new_values The array of newly saved values after update.
 	 */
-	public function bp_xprofile_edited( $user_id = 0, $posted_field_ids, $errors ) {
+	public function bp_xprofile_edited( $user_id, $posted_field_ids, $errors, $old_values, $new_values ) {
 
 		// Bail if BuddyPress is not set to sync to WordPress.
-		if ( ! bp_disable_profile_sync() ) {
+		if ( bp_disable_profile_sync() ) {
 			return;
 		}
 
@@ -381,6 +409,8 @@ class CiviCRM_WP_Profile_Sync_Mapper_Hooks_Core {
 			'user_id' => $user_id,
 			'posted_field_ids' => $posted_field_ids,
 			'errors' => $errors,
+			'old_values' => $old_values,
+			'new_values' => $new_values,
 		];
 
 		/**
@@ -405,14 +435,16 @@ class CiviCRM_WP_Profile_Sync_Mapper_Hooks_Core {
 	 *
 	 * @since 0.4
 	 *
-	 * @param integer $user_id The numeric ID of the WordPress User.
-	 * @param array $posted_field_ids The array of numeric IDs of the BuddyPress fields.
-	 * @param bool $errors True if there are errors, false otherwise.
+	 * @param bool|WP_Error $user_id THe WordPress User ID or WP_Error on failure.
+	 * @param string $user_login Login name requested by the user.
+	 * @param string $user_password Password requested by the user.
+	 * @param string $user_email Email address requested by the user.
+	 * @param array $usermeta Metadata about the user (blog-specific signup data, xprofile data, etc).
 	 */
-	public function bp_signup_user( $user_id = 0, $posted_field_ids, $errors ) {
+	public function bp_signup_user( $user_id, $user_login, $user_password, $user_email, $usermeta ) {
 
 		// Bail if BuddyPress is not set to sync to WordPress.
-		if ( ! bp_disable_profile_sync() ) {
+		if ( bp_disable_profile_sync() ) {
 			return;
 		}
 
@@ -433,8 +465,10 @@ class CiviCRM_WP_Profile_Sync_Mapper_Hooks_Core {
 		// Let's make an array of the params.
 		$args = [
 			'user_id' => $user_id,
-			'posted_field_ids' => $posted_field_ids,
-			'errors' => $errors,
+			'user_login' => $user_login,
+			'user_password' => $user_password,
+			'user_email' => $user_email,
+			'usermeta' => $usermeta,
 		];
 
 		/**
@@ -460,13 +494,13 @@ class CiviCRM_WP_Profile_Sync_Mapper_Hooks_Core {
 	 * @since 0.4
 	 *
 	 * @param integer $user_id The numeric ID of the WordPress User.
-	 * @param array $posted_field_ids The array of numeric IDs of the BuddyPress fields.
-	 * @param bool $errors True if there are errors, false otherwise.
+	 * @param string $key The Activation key.
+	 * @param array $user The array of User data.
 	 */
-	public function bp_activated_user( $user_id = 0, $posted_field_ids, $errors ) {
+	public function bp_activated_user( $user_id, $key, $user ) {
 
 		// Bail if BuddyPress is not set to sync to WordPress.
-		if ( ! bp_disable_profile_sync() ) {
+		if ( bp_disable_profile_sync() ) {
 			return;
 		}
 
@@ -487,8 +521,8 @@ class CiviCRM_WP_Profile_Sync_Mapper_Hooks_Core {
 		// Let's make an array of the params.
 		$args = [
 			'user_id' => $user_id,
-			'posted_field_ids' => $posted_field_ids,
-			'errors' => $errors,
+			'key' => $key,
+			'user' => $user,
 		];
 
 		/**
@@ -499,6 +533,51 @@ class CiviCRM_WP_Profile_Sync_Mapper_Hooks_Core {
 		 * @param array $args The array of BuddyPress params.
 		 */
 		do_action( 'cwps/mapper/bp_activated_user', $args );
+
+		// Reinstate other callbacks.
+		$this->hooks_civicrm_add();
+		$this->hooks_wordpress_add();
+
+	}
+
+
+
+	/**
+	 * Fires when the content of a BuddyPress xProfile Field has been edited.
+	 *
+	 * @since 0.5
+	 *
+	 * @param BP_XProfile_ProfileData $data The current instance of the xProfile data being saved.
+	 */
+	public function bp_field_edited( $data ) {
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'data' => $data,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		// Remove other callbacks to prevent recursion.
+		$this->hooks_civicrm_remove();
+		$this->hooks_wordpress_remove();
+
+		// Let's make an array of the params.
+		$args = [
+			'data' => $data,
+		];
+
+		/**
+		 * Broadcast that a BuddyPress xProfile Field has been edited.
+		 *
+		 * @since 0.5
+		 *
+		 * @param array $args The array of BuddyPress params.
+		 */
+		do_action( 'cwps/mapper/bp_field_edited', $args );
 
 		// Reinstate other callbacks.
 		$this->hooks_civicrm_add();
@@ -530,7 +609,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_Hooks_Core {
 		}
 
 		// Bail if this is not a Contact.
-		$top_level_types = $this->plugin->civicrm->contact->types_get_top_level();
+		$top_level_types = $this->plugin->civicrm->contact_type->types_get_top_level();
 		if ( ! in_array( $objectName, $top_level_types ) ) {
 			return;
 		}
@@ -584,7 +663,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_Hooks_Core {
 		}
 
 		// Bail if this is not a Contact.
-		$top_level_types = $this->plugin->civicrm->contact->types_get_top_level();
+		$top_level_types = $this->plugin->civicrm->contact_type->types_get_top_level();
 		if ( ! in_array( $objectName, $top_level_types ) ) {
 			return;
 		}
@@ -638,7 +717,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_Hooks_Core {
 		}
 
 		// Bail if this is not a Contact.
-		$top_level_types = $this->plugin->civicrm->contact->types_get_top_level();
+		$top_level_types = $this->plugin->civicrm->contact_type->types_get_top_level();
 		if ( ! in_array( $objectName, $top_level_types ) ) {
 			return;
 		}
@@ -692,7 +771,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_Hooks_Core {
 		}
 
 		// Bail if this is not a Contact.
-		$top_level_types = $this->plugin->civicrm->contact->types_get_top_level();
+		$top_level_types = $this->plugin->civicrm->contact_type->types_get_top_level();
 		if ( ! in_array( $objectName, $top_level_types ) ) {
 			return;
 		}

@@ -30,6 +30,15 @@ defined( 'ABSPATH' ) || exit;
 class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Term_HTML {
 
 	/**
+	 * Plugin object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $plugin The plugin object.
+	 */
+	public $plugin;
+
+	/**
 	 * ACF Loader object.
 	 *
 	 * @since 0.5
@@ -85,16 +94,11 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Term_HTML {
 	 */
 	public function __construct( $parent ) {
 
-		// Store reference to ACF Loader object.
+		// Store references to objects.
+		$this->plugin = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-
-		// Store reference to CiviCRM object.
 		$this->civicrm = $parent->civicrm;
-
-		// Store reference to parent.
 		$this->participant = $parent->participant;
-
-		// Store reference to parent.
 		$this->cpt = $parent;
 
 		// Store Taxonomy name.

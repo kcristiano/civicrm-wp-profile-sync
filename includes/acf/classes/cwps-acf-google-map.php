@@ -23,6 +23,15 @@ defined( 'ABSPATH' ) || exit;
 class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_ACF_CiviCRM_Base {
 
 	/**
+	 * Plugin object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $plugin The plugin object.
+	 */
+	public $plugin;
+
+	/**
 	 * ACF Loader object.
 	 *
 	 * @since 0.4
@@ -83,10 +92,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 	 */
 	public function __construct( $parent ) {
 
-		// Store reference to ACF Loader object.
+		// Store references to objects.
+		$this->plugin = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-
-		// Store reference to parent.
 		$this->civicrm = $parent;
 
 		// Init when the CiviCRM object is loaded.
@@ -854,20 +862,20 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 		}
 
 		// Bail if there's no Contact.
-		$contact = $this->acf_loader->civicrm->contact->get_by_id( $address->contact_id );
+		$contact = $this->plugin->civicrm->contact->get_by_id( $address->contact_id );
 		if ( $contact === false ) {
 			return;
 		}
 
 		// Test if of this Contact's Contact Types is mapped to a Post Type.
-		$post_types = $this->acf_loader->civicrm->contact->is_mapped( $contact, 'create' );
+		$post_types = $this->civicrm->contact->is_mapped( $contact, 'create' );
 		if ( $post_types !== false ) {
 
 			// Handle each Post Type in turn.
 			foreach ( $post_types as $post_type ) {
 
 				// Bail if this Contact has no mapped Post.
-				$post_id = $this->acf_loader->civicrm->contact->is_mapped_to_post( $contact, $post_type );
+				$post_id = $this->civicrm->contact->is_mapped_to_post( $contact, $post_type );
 				if ( $post_id === false ) {
 					continue;
 				}
@@ -1155,8 +1163,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 				// If this Address WAS the "Billing Address" but is NOT NOW, it
 				// means we have to clear the ACF Field.
 				if (
-					$address->is_billing == '0' AND
-					isset( $address->toggle_billing ) AND
+					$address->is_billing == '0' &&
+					isset( $address->toggle_billing ) &&
 					$address->toggle_billing == 'off'
 				) {
 					$fields_to_update[$selector] = [
@@ -1188,9 +1196,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 
 			// If this Field has CHANGED its Location Type.
 			if (
-				$address->location_type_id != $address_field AND
-				isset( $previous->location_type_id ) AND
-				$previous->location_type_id != $address->location_type_id AND
+				$address->location_type_id != $address_field &&
+				isset( $previous->location_type_id ) &&
+				$previous->location_type_id != $address->location_type_id &&
 				$previous->location_type_id == $address_field
 			) {
 
@@ -1570,7 +1578,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 			}
 
 			// Get this Contact's Addresses.
-			$addresses = $this->acf_loader->civicrm->address->addresses_get_by_contact_id( $contact_id );
+			$addresses = $this->civicrm->address->addresses_get_by_contact_id( $contact_id );
 
 			// Init location.
 			$location = false;

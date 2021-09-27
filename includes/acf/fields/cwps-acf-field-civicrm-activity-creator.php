@@ -22,6 +22,15 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Creator extends acf_field {
 
 	/**
+	 * Plugin object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $plugin The plugin object.
+	 */
+	public $plugin;
+
+	/**
 	 * ACF Loader object.
 	 *
 	 * @since 0.4
@@ -130,10 +139,9 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Creator extends acf_field {
 	 */
 	public function __construct( $parent ) {
 
-		// Store reference to ACF Loader object.
+		// Store references to objects.
+		$this->plugin = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-
-		// Store reference to parent.
 		$this->acf = $parent->acf;
 
 		// Define label.
@@ -214,7 +222,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Creator extends acf_field {
 			$contact_ids = array_map( 'intval', acf_array( $field['value'] ) );
 
 			// Get existing Contacts.
-			$contacts = $this->acf_loader->civicrm->contact->get_by_ids( $contact_ids );
+			$contacts = $this->plugin->civicrm->contact->get_by_ids( $contact_ids );
 
 			// Maybe append them.
 			if ( ! empty( $contacts ) ) {

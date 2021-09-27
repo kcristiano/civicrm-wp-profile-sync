@@ -24,6 +24,15 @@ defined( 'ABSPATH' ) || exit;
 class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 
 	/**
+	 * Plugin object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $plugin The plugin object.
+	 */
+	public $plugin;
+
+	/**
 	 * ACF Loader object.
 	 *
 	 * @since 0.5
@@ -115,13 +124,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	 */
 	public function __construct( $parent ) {
 
-		// Store reference to ACF Loader object.
+		// Store references to objects.
+		$this->plugin = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-
-		// Store reference to CiviCRM object.
 		$this->civicrm = $parent->civicrm;
-
-		// Store reference to parent.
 		$this->participant = $parent;
 
 		// Determine if the CPT is enabled.
@@ -775,7 +781,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		}
 
 		// Backfill the Participant data.
-		$args['objectRef'] = $this->acf_loader->civicrm->participant->backfill( $args['objectRef'] );
+		$args['objectRef'] = $this->civicrm->participant->backfill( $args['objectRef'] );
 
 		// Find the Post ID of this Post Type that this Participant is synced with.
 		$post_id = false;
@@ -828,7 +834,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		}
 
 		// Backfill the Participant data.
-		$args['objectRef'] = $this->acf_loader->civicrm->participant->backfill( $args['objectRef'] );
+		$args['objectRef'] = $this->civicrm->participant->backfill( $args['objectRef'] );
 
 		// Get originating Entity.
 		$entity = $this->acf_loader->mapper->entity_get();
@@ -904,7 +910,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		}
 
 		// Backfill the Participant data.
-		$args['objectRef'] = $this->acf_loader->civicrm->participant->backfill( $args['objectRef'] );
+		$args['objectRef'] = $this->civicrm->participant->backfill( $args['objectRef'] );
 
 		// Find the Post ID of this Post Type that this Participant is synced with.
 		$post_id = false;
@@ -1064,7 +1070,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		}
 
 		// Get the Custom Fields for CiviCRM Participants.
-		$entity_custom_fields = $this->acf_loader->civicrm->custom_field->get_for_entity_type( 'Participant', '' );
+		$entity_custom_fields = $this->plugin->civicrm->custom_field->get_for_entity_type( 'Participant', '' );
 
 		// Maybe merge with passed in array.
 		if ( ! empty( $entity_custom_fields ) ) {
@@ -1291,14 +1297,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		}
 
 		// Check permission to view this Contact.
-		if ( ! $this->acf_loader->civicrm->contact->user_can_view( $contact_id ) ) {
+		if ( ! $this->civicrm->contact->user_can_view( $contact_id ) ) {
 			return $actions;
 		}
 
 		// Get the "View" URL for this Participant.
 		$query_base = 'reset=1&id=' . $participant_id . '&cid=' . $contact_id;
 		$view_query = $query_base . '&action=view&context=participant';
-		$view_url = $this->acf_loader->civicrm->get_link( 'civicrm/contact/view/participant', $view_query );
+		$view_url = $this->civicrm->get_link( 'civicrm/contact/view/participant', $view_query );
 
 		// Add link to actions.
 		$actions['civicrm'] = sprintf(
@@ -1371,18 +1377,18 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		}
 
 		// Check permission to view this Contact.
-		if ( ! $this->acf_loader->civicrm->contact->user_can_view( $contact_id ) ) {
+		if ( ! $this->civicrm->contact->user_can_view( $contact_id ) ) {
 			return;
 		}
 
 		// Get the "View" URL for this Participant.
 		$query_base = 'reset=1&id=' . $participant_id . '&cid=' . $contact_id;
 		$view_query = $query_base . '&action=view&context=participant';
-		$view_url = $this->acf_loader->civicrm->get_link( 'civicrm/contact/view/participant', $view_query );
+		$view_url = $this->civicrm->get_link( 'civicrm/contact/view/participant', $view_query );
 
 		// Get the "Edit" URL for this Participant.
 		$edit_query = $query_base . '&action=update&context=participant&selectedChild=event';
-		$edit_url = $this->acf_loader->civicrm->get_link( 'civicrm/contact/view/participant', $edit_query );
+		$edit_url = $this->civicrm->get_link( 'civicrm/contact/view/participant', $edit_query );
 
 		// Add item to Edit menu.
 		$wp_admin_bar->add_node( [
@@ -1987,19 +1993,19 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 	public function maybe_hide_field( $field ) {
 
 		// Get the CiviCRM Custom Field ID.
-		$custom_field_id = $this->acf_loader->civicrm->custom_field->custom_field_id_get( $field );
+		$custom_field_id = $this->civicrm->custom_field->custom_field_id_get( $field );
 		if ( empty( $custom_field_id ) ) {
 			return $field;
 		}
 
 		// Get the CiviCRM Custom Field.
-		$custom_field = $this->acf_loader->civicrm->custom_field->get_by_id( $custom_field_id );
+		$custom_field = $this->plugin->civicrm->custom_field->get_by_id( $custom_field_id );
 		if ( empty( $custom_field ) ) {
 			return $field;
 		}
 
 		// Get the CiviCRM Custom Group.
-		$custom_group = $this->acf_loader->civicrm->custom_group->get_by_id( $custom_field['custom_group_id'] );
+		$custom_group = $this->plugin->civicrm->custom_group->get_by_id( $custom_field['custom_group_id'] );
 		if ( empty( $custom_group ) ) {
 			return $field;
 		}

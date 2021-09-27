@@ -23,6 +23,15 @@ defined( 'ABSPATH' ) || exit;
 class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 
 	/**
+	 * Plugin object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $plugin The plugin object.
+	 */
+	public $plugin;
+
+	/**
 	 * ACF Loader object.
 	 *
 	 * @since 0.4
@@ -89,10 +98,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 	 */
 	public function __construct( $parent ) {
 
-		// Store reference to ACF Loader object.
+		// Store references to objects.
+		$this->plugin = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-
-		// Store reference to parent.
 		$this->civicrm = $parent;
 
 		// Init when the CiviCRM object is loaded.
@@ -377,7 +385,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 
 		// Status ID.
 		if ( $name == 'status_id' ) {
-			$option_group = $this->civicrm->option_group_get( 'activity_status' );
+			$option_group = $this->plugin->civicrm->option_group_get( 'activity_status' );
 			if ( ! empty( $option_group ) ) {
 				$options = CRM_Core_OptionGroup::valuesByID( $option_group['id'] );
 			}
@@ -385,7 +393,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 
 		// Priority ID.
 		if ( $name == 'priority_id' ) {
-			$option_group = $this->civicrm->option_group_get( 'priority' );
+			$option_group = $this->plugin->civicrm->option_group_get( 'priority' );
 			if ( ! empty( $option_group ) ) {
 				$options = CRM_Core_OptionGroup::valuesByID( $option_group['id'] );
 			}
@@ -393,7 +401,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 
 		// Engagement Level.
 		if ( $name == 'engagement_level' ) {
-			$option_group = $this->civicrm->option_group_get( 'engagement_index' );
+			$option_group = $this->plugin->civicrm->option_group_get( 'engagement_index' );
 			if ( ! empty( $option_group ) ) {
 				$options = CRM_Core_OptionGroup::valuesByID( $option_group['id'] );
 			}
@@ -546,11 +554,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 		$result = civicrm_api( 'Activity', 'getfields', $params );
 
 		// Override return if we get some.
-		if (
-			$result['is_error'] == 0 AND
-			isset( $result['values'] ) AND
-			count( $result['values'] ) > 0
-		) {
+		if ( $result['is_error'] == 0 && ! empty( $result['values'] ) ) {
 
 			// Check for no filter.
 			if ( $filter == 'none' ) {
@@ -628,11 +632,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 		$result = civicrm_api( 'Activity', 'getfields', $params );
 
 		// Override return if we get some.
-		if (
-			$result['is_error'] == 0 AND
-			isset( $result['values'] ) AND
-			count( $result['values'] ) > 0
-		) {
+		if ( $result['is_error'] == 0 && ! empty( $result['values'] ) ) {
 
 			// Check for no filter.
 			if ( $filter == 'none' ) {
@@ -761,7 +761,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 		}
 
 		// Skip if the CiviCRM Field key isn't there or isn't populated.
-		$key = $this->acf_loader->civicrm->acf_field_key_get();
+		$key = $this->civicrm->acf_field_key_get();
 		if ( ! array_key_exists( $key, $field ) || empty( $field[$key] ) ) {
 			return $field;
 		}
@@ -802,13 +802,13 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 		}
 
 		// Skip if the CiviCRM Field key isn't there or isn't populated.
-		$key = $this->acf_loader->civicrm->acf_field_key_get();
+		$key = $this->civicrm->acf_field_key_get();
 		if ( ! array_key_exists( $key, $field ) || empty( $field[$key] ) ) {
 			return $field;
 		}
 
 		// Get the mapped Activity Field name if present.
-		$activity_field_name = $this->acf_loader->civicrm->activity->activity_field_name_get( $field );
+		$activity_field_name = $this->civicrm->activity->activity_field_name_get( $field );
 		if ( $activity_field_name === false ) {
 			return $field;
 		}
@@ -897,7 +897,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Activity_Field {
 		}
 
 		// Get the full Activity data.
-		$activity = $this->acf_loader->civicrm->activity->get_by_id( $args['activity_id'] );
+		$activity = $this->civicrm->activity->get_by_id( $args['activity_id'] );
 
 		// Check permissions.
 		if ( ! current_user_can( 'edit_post', $args['post']->ID ) ) {

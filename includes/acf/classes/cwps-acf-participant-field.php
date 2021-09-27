@@ -23,6 +23,15 @@ defined( 'ABSPATH' ) || exit;
 class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 
 	/**
+	 * Plugin object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $plugin The plugin object.
+	 */
+	public $plugin;
+
+	/**
 	 * ACF Loader object.
 	 *
 	 * @since 0.5
@@ -74,10 +83,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 	 */
 	public function __construct( $parent ) {
 
-		// Store reference to ACF Loader object.
+		// Store references to objects.
+		$this->plugin = $parent->acf_loader->plugin;
 		$this->acf_loader = $parent->acf_loader;
-
-		// Store reference to parent.
 		$this->civicrm = $parent;
 
 		// Init when the CiviCRM object is loaded.
@@ -152,7 +160,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 		}
 
 		// Get the mapped Participant Field name if present.
-		$participant_field_name = $this->acf_loader->civicrm->participant->participant_field_name_get( $field );
+		$participant_field_name = $this->civicrm->participant->participant_field_name_get( $field );
 		if ( $participant_field_name === false ) {
 			return $valid;
 		}
@@ -414,7 +422,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 
 		// Participant Role ID.
 		if ( $name == 'role_id' ) {
-			$option_group_id = $this->acf_loader->civicrm->participant_role->option_group_id_get();
+			$option_group_id = $this->civicrm->participant_role->option_group_id_get();
 			if ( ! empty( $option_group ) ) {
 				$options = CRM_Core_OptionGroup::valuesByID( $option_group_id );
 			}
@@ -671,11 +679,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 		$result = civicrm_api( 'Participant', 'getfields', $params );
 
 		// Override return if we get some.
-		if (
-			$result['is_error'] == 0 AND
-			isset( $result['values'] ) AND
-			count( $result['values'] ) > 0
-		) {
+		if ( $result['is_error'] == 0 && ! empty( $result['values'] ) ) {
 
 			// Check for no filter.
 			if ( $filter == 'none' ) {
@@ -797,7 +801,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 		}
 
 		// Skip if the CiviCRM Field key isn't there or isn't populated.
-		$key = $this->acf_loader->civicrm->acf_field_key_get();
+		$key = $this->civicrm->acf_field_key_get();
 		if ( ! array_key_exists( $key, $field ) || empty( $field[$key] ) ) {
 			return $field;
 		}
@@ -835,13 +839,13 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 		}
 
 		// Skip if the CiviCRM Field key isn't there or isn't populated.
-		$key = $this->acf_loader->civicrm->acf_field_key_get();
+		$key = $this->civicrm->acf_field_key_get();
 		if ( ! array_key_exists( $key, $field ) || empty( $field[$key] ) ) {
 			return $field;
 		}
 
 		// Get the mapped Participant Field name if present.
-		$participant_field_name = $this->acf_loader->civicrm->participant->participant_field_name_get( $field );
+		$participant_field_name = $this->civicrm->participant->participant_field_name_get( $field );
 		if ( $participant_field_name === false ) {
 			return $field;
 		}
@@ -927,7 +931,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 		}
 
 		// Get the full Participant data.
-		$participant = $this->acf_loader->civicrm->participant->get_by_id( $args['participant_id'] );
+		$participant = $this->civicrm->participant->get_by_id( $args['participant_id'] );
 
 		// Check permissions.
 		if ( ! current_user_can( 'edit_post', $args['post']->ID ) ) {

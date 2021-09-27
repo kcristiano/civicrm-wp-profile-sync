@@ -27,7 +27,7 @@ defined( 'ABSPATH' ) || exit;
 function cacf_get_age_from_acf_field( $selector, $post_id = null ) {
 
 	// Get reference to plugin.
-	$cwps = civicrm_wp_profile_sync()->acf;
+	$cwps = civicrm_wp_profile_sync();
 
 	// Try the global if no Post ID.
 	if ( is_null( $post_id ) ) {
@@ -332,11 +332,7 @@ function cacf_get_phone_records_by_type_ids( $selector, $location_type_id, $phon
 
 		// Try and find the Phone Records that match both the Location and Phone Type IDs.
 		foreach ( $records as $record ) {
-			if (
-				$record['field_phone_location'] == $location_type_id
-				AND
-				$record['field_phone_type'] == $phone_type_id
-			) {
+			if ( $record['field_phone_location'] == $location_type_id && $record['field_phone_type'] == $phone_type_id ) {
 				$phones[] = $record;
 			}
 		}
@@ -775,11 +771,7 @@ function cacf_get_im_records_by_type_ids( $selector, $location_type_id, $im_prov
 
 		// Try and find the Instant Messenger Records that match both the Location and Provider IDs.
 		foreach ( $records as $record ) {
-			if (
-				$record['field_im_location'] == $location_type_id
-				AND
-				$record['field_im_provider'] == $im_provider_id
-			) {
+			if ( $record['field_im_location'] == $location_type_id && $record['field_im_provider'] == $im_provider_id ) {
 				$ims[] = $record;
 			}
 		}
