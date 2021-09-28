@@ -1097,7 +1097,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Contact {
 		}
 
 		// Get the link to the Contact.
-		$link = $this->civicrm->get_link( 'civicrm/contact/view', 'reset=1&cid=' . $contact['id'] );
+		$link = $this->plugin->civicrm->get_link( 'civicrm/contact/view', 'reset=1&cid=' . $contact['id'] );
 
 		// Add menu item.
 		$wp_admin_bar->add_node( [

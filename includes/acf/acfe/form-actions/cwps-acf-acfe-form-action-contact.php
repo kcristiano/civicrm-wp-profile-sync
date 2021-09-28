@@ -2816,7 +2816,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 		$contact = $this->plugin->civicrm->contact->get_by_id( $result['id'] );
 
 		// Add to the Domain Group if necessary.
-		$domain_group_id = $this->civicrm->get_setting( 'domain_group_id' );
+		$domain_group_id = $this->plugin->civicrm->get_setting( 'domain_group_id' );
 		if ( ! empty( $domain_group_id ) && is_numeric( $domain_group_id ) ) {
 			$this->civicrm->group->group_contact_create( $domain_group_id, $contact['id'] );
 		}

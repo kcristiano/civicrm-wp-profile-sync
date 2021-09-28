@@ -2026,7 +2026,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 		// TODO: Check permission to view Participant Roles.
 
 		// Get the URL for the Participant Roles page in CiviCRM.
-		$url = $this->civicrm->get_link( 'civicrm/admin/options/participant_role', 'reset=1' );
+		$url = $this->plugin->civicrm->get_link( 'civicrm/admin/options/participant_role', 'reset=1' );
 
 		// Add item to CAU menu.
 		$wp_admin_bar->add_node( [

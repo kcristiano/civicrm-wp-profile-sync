@@ -309,7 +309,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 		}
 
 		// Get the URL for this Contact.
-		$url = $this->acf_loader->civicrm->get_link( 'civicrm/contact/view', 'reset=1&cid=' . $contact_id );
+		$url = $this->plugin->civicrm->get_link( 'civicrm/contact/view', 'reset=1&cid=' . $contact_id );
 
 		// Construct link.
 		$link = sprintf(
@@ -469,7 +469,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 		}
 
 		// Get the URL for this Contact.
-		$url = $this->acf_loader->civicrm->get_link( 'civicrm/contact/view', 'reset=1&cid=' . $contact_id );
+		$url = $this->plugin->civicrm->get_link( 'civicrm/contact/view', 'reset=1&cid=' . $contact_id );
 
 		// Add item to Edit menu.
 		$wp_admin_bar->add_node( [
@@ -532,7 +532,7 @@ class CiviCRM_Profile_Sync_ACF_Post {
 		}
 
 		// Get the URL for this Contact.
-		$url = $this->acf_loader->civicrm->get_link( 'civicrm/contact/view', 'reset=1&cid=' . $contact_id );
+		$url = $this->plugin->civicrm->get_link( 'civicrm/contact/view', 'reset=1&cid=' . $contact_id );
 
 		// Add link to actions.
 		$actions['civicrm'] = sprintf(

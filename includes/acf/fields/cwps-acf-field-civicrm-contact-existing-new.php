@@ -752,7 +752,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_Existing_New extends acf_field
 		// Did we get one?
 		if ( ! empty( $contact_id ) ) {
 			$contact = $this->plugin->civicrm->contact->get_by_id( $contact_id );
-			$url = $this->acf_loader->civicrm->get_link( 'civicrm/contact/view', 'reset=1&cid=' . $contact_id );
+			$url = $this->plugin->civicrm->get_link( 'civicrm/contact/view', 'reset=1&cid=' . $contact_id );
 			$valid = sprintf(
 				__( 'It looks like this Contact already exists: %1$s %2$s', 'civicrm-wp-profile-sync' ),
 				'<a href="' . $url . '" target="_blank">' . esc_html( $contact['display_name'] ) . '</a>',

@@ -293,6 +293,41 @@ class CiviCRM_WP_Profile_Sync_CiviCRM {
 
 
 	/**
+	 * Get a CiviCRM Setting.
+	 *
+	 * @since 0.5
+	 *
+	 * @param string $name The name of the CiviCRM Setting.
+	 * @return mixed $setting The value of the CiviCRM Setting, or false on failure.
+	 */
+	public function get_setting( $name ) {
+
+		// Init return.
+		$setting = false;
+
+		// Init CiviCRM or bail.
+		if ( ! $this->is_initialised() ) {
+			return $setting;
+		}
+
+		// Construct params.
+		$params = [
+			'version' => 3,
+			'sequential' => 1,
+			'name' => $name,
+		];
+
+		// Call the CiviCRM API.
+		$setting = civicrm_api( 'Setting', 'getvalue', $params );
+
+		// --<
+		return $setting;
+
+	}
+
+
+
+	/**
 	 * Get a CiviCRM admin link.
 	 *
 	 * @since 0.4
@@ -313,13 +348,13 @@ class CiviCRM_WP_Profile_Sync_CiviCRM {
 
 		// Use CiviCRM to construct link.
 		$link = CRM_Utils_System::url(
-			$path,
-			$params,
-			true,
-			null,
-			true,
-			false,
-			true
+			$path, // Path to the resource.
+			$params, // Params to pass to resource.
+			true, // Force an absolute link.
+			null, // Fragment (#anchor) to append.
+			true, // Encode special HTML characters.
+			false, // CMS front end.
+			true // CMS back end.
 		);
 
 		// --<

@@ -1304,7 +1304,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		// Get the "View" URL for this Participant.
 		$query_base = 'reset=1&id=' . $participant_id . '&cid=' . $contact_id;
 		$view_query = $query_base . '&action=view&context=participant';
-		$view_url = $this->civicrm->get_link( 'civicrm/contact/view/participant', $view_query );
+		$view_url = $this->plugin->civicrm->get_link( 'civicrm/contact/view/participant', $view_query );
 
 		// Add link to actions.
 		$actions['civicrm'] = sprintf(
@@ -1384,11 +1384,11 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT {
 		// Get the "View" URL for this Participant.
 		$query_base = 'reset=1&id=' . $participant_id . '&cid=' . $contact_id;
 		$view_query = $query_base . '&action=view&context=participant';
-		$view_url = $this->civicrm->get_link( 'civicrm/contact/view/participant', $view_query );
+		$view_url = $this->plugin->civicrm->get_link( 'civicrm/contact/view/participant', $view_query );
 
 		// Get the "Edit" URL for this Participant.
 		$edit_query = $query_base . '&action=update&context=participant&selectedChild=event';
-		$edit_url = $this->civicrm->get_link( 'civicrm/contact/view/participant', $edit_query );
+		$edit_url = $this->plugin->civicrm->get_link( 'civicrm/contact/view/participant', $edit_query );
 
 		// Add item to Edit menu.
 		$wp_admin_bar->add_node( [
