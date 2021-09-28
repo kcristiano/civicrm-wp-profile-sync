@@ -278,6 +278,17 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 	 */
 	public function fields_edited( $args ) {
 
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'args' => $args,
+			'civicrm_ref' => $this->civicrm_ref,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
 		// Bail if there are no CiviCRM References.
 		if ( empty( $this->civicrm_ref ) ) {
 			return;
@@ -350,6 +361,16 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 	 */
 	public function prepare_from_fields( $field_data ) {
 
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'field_data' => $field_data,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
 		// Init data for fields.
 		$contact_data = [];
 
@@ -375,7 +396,7 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 					// Build Custom Field code.
 					$code = 'custom_' . (string) $custom_field_id;
 
-				} else {
+				} elseif ( ! empty( $contact_field_name ) ) {
 
 					// The Contact Field code is the setting.
 					$code = $contact_field_name;
@@ -395,6 +416,19 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 					'contact_field_name' => $contact_field_name,
 				];
 
+				/*
+				$e = new \Exception();
+				$trace = $e->getTraceAsString();
+				error_log( print_r( [
+					'method' => __METHOD__,
+					//'contact_fields' => $contact_fields,
+					//'field_type' => $field_type,
+					'data' => $data,
+					'args' => $args,
+					//'backtrace' => $trace,
+				], true ) );
+				*/
+
 				// Parse value by Field Type.
 				$value = $this->value_get_for_civicrm( $data['value'], $data['field_type'], $args );
 
@@ -404,6 +438,16 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 			}
 
 		}
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'contact_data' => $contact_data,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
 
 		// --<
 		return $contact_data;
@@ -761,6 +805,16 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 		// Get metadata for this xProfile Field.
 		$args = $this->get_metadata_all( $field );
 
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'args' => $args,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
 		// Bail if there is none.
 		if ( empty( $args ) ) {
 			return $value;
@@ -781,6 +835,17 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 		 * @param array $args The array of CiviCRM mapping data.
 		 */
 		$options = apply_filters( 'cwps/bp/field/query_options', [], $field->type, $args );
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'options' => $options,
+			'value' => $value,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
 
 		// Bail if there are no Options.
 		if ( empty( $options ) ) {
@@ -805,21 +870,21 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 				}
 			}
 		} else {
+			$value_for_bp = 0;
+			$value_for_civicrm = 0;
 			if ( array_key_exists( $value, $options ) ) {
 				$value_for_bp = $options[$value];
 				$value_for_civicrm = $value;
 			}
 		}
 
-		// Save the "real" CiviCRM value for later.
-		if ( ! empty( $value_for_civicrm ) ) {
-			$field->civicrm_value = $value_for_civicrm;
-			$this->civicrm_ref[] = [
-				'field_id' => $field->id,
-				'field_type' => $field->type,
-				'value' => $value
-			];
-		}
+		// Always save the "real" CiviCRM value for later.
+		$field->civicrm_value = $value_for_civicrm;
+		$this->civicrm_ref[] = [
+			'field_id' => $field->id,
+			'field_type' => $field->type,
+			'value' => $value,
+		];
 
 		// Now maybe overwrite the return.
 		if ( ! empty( $value_for_bp ) ) {
@@ -831,9 +896,10 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 		$trace = $e->getTraceAsString();
 		error_log( print_r( [
 			'method' => __METHOD__,
-			//'value' => $value,
+			'value' => $value,
 			'field' => $field,
-			//'field_type_obj' => $field_type_obj,
+			'civicrm_value' => $field->civicrm_value,
+			'civicrm_ref' => $this->civicrm_ref,
 			//'backtrace' => $trace,
 		], true ) );
 		*/
