@@ -504,6 +504,11 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 				$value = $this->date_value_get_for_civicrm( $value, $args );
 				break;
 
+	 		// Parse the value of a "Textarea" Field.
+			case 'textarea' :
+				$value = $this->textarea_value_get_for_civicrm( $value, $args );
+				break;
+
 			// Other Field types may require parsing - add them here.
 
 		}
@@ -557,6 +562,30 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 
 		// Convert to CiviCRM format.
 		$value = $datetime->format( $format );
+
+		// --<
+		return $value;
+
+	}
+
+
+
+	/**
+	 * Get the value of a "Textarea" Field formatted for CiviCRM.
+	 *
+	 * @since 0.5
+	 *
+	 * @param string $value The existing Field value.
+	 * @param array $args Any additional arguments.
+	 * @return string $value The modified value for CiviCRM.
+	 */
+	public function textarea_value_get_for_civicrm( $value = '', $args ) {
+
+		// Convert to full HTML.
+		$value = wptexturize( $value );
+		$value = convert_chars( $value );
+		$value = wpautop( $value );
+		$value = force_balance_tags( $value );
 
 		// --<
 		return $value;
