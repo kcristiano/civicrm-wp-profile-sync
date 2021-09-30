@@ -404,6 +404,58 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Phone {
 
 
 
+	// -------------------------------------------------------------------------
+
+
+
+	/**
+	 * Get the Phone Field options for a given Field Name.
+	 *
+	 * @since 0.5
+	 *
+	 * @param string $name The name of the Field.
+	 * @return array $field The array of Field data.
+	 */
+	public function get_by_name( $name ) {
+
+		// Init return.
+		$field = [];
+
+		// Try and init CiviCRM.
+		if ( ! $this->civicrm->is_initialised() ) {
+			return $field;
+		}
+
+		// Construct params.
+		$params = [
+			'version' => 3,
+			'name' => $name,
+			'action' => 'get',
+		];
+
+		// Call the API.
+		$result = civicrm_api( 'Phone', 'getfield', $params );
+
+		// Bail if there's an error.
+		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+			return $field;
+		}
+
+		// Bail if there are no results.
+		if ( empty( $result['values'] ) ) {
+			return $field;
+		}
+
+		// The result set is the item.
+		$field = $result['values'];
+
+		// --<
+		return $field;
+
+	}
+
+
+
 } // Class ends.
 
 

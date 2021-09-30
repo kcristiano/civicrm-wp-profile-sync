@@ -1,8 +1,8 @@
 <?php
 /**
- * BuddyPress xProfile Field Class.
+ * BuddyPress xProfile Class.
  *
- * Handles BuddyPress xProfile Field functionality.
+ * Handles BuddyPress xProfile functionality.
  *
  * @package CiviCRM_WP_Profile_Sync
  * @since 0.5
@@ -14,13 +14,13 @@ defined( 'ABSPATH' ) || exit;
 
 
 /**
- * CiviCRM Profile Sync BuddyPress xProfile Field Class.
+ * CiviCRM Profile Sync BuddyPress xProfile Class.
  *
- * A class that encapsulates BuddyPress xProfile Field functionality.
+ * A class that encapsulates BuddyPress xProfile functionality.
  *
  * @since 0.5
  */
-class CiviCRM_Profile_Sync_BP_xProfile_Field {
+class CiviCRM_Profile_Sync_BP_xProfile {
 
 	/**
 	 * Plugin object.
@@ -48,6 +48,15 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 	 * @var object $civicrm The CiviCRM object.
 	 */
 	public $civicrm;
+
+	/**
+	 * CiviCRM Contact object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $contact The CiviCRM Contact object.
+	 */
+	public $contact;
 
 	/**
 	 * CiviCRM Contact Field object.
@@ -228,10 +237,11 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 	public function include_files() {
 
 		// Include class files.
-		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-contact-field.php';
-		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-custom-field.php';
-		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-address.php';
-		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-phone.php';
+		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-civicrm-contact.php';
+		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-civicrm-contact-field.php';
+		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-civicrm-custom-field.php';
+		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-civicrm-address.php';
+		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-civicrm-phone.php';
 
 	}
 
@@ -245,6 +255,7 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 	public function setup_objects() {
 
 		// Init objects.
+		$this->contact = new CiviCRM_Profile_Sync_BP_CiviCRM_Contact( $this );
 		$this->contact_field = new CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field( $this );
 		$this->custom_field = new CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field( $this );
 		$this->address = new CiviCRM_Profile_Sync_BP_CiviCRM_Address( $this );

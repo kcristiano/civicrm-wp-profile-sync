@@ -67,13 +67,13 @@ class CiviCRM_WP_Profile_Sync_BuddyPress {
 	public $buddyboss;
 
 	/**
-	 * BuddyPress Field object.
+	 * BuddyPress xProfile object.
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object $field The BuddyPress Field object.
+	 * @var object $xprofile The BuddyPress xProfile object.
 	 */
-	public $field;
+	public $xprofile;
 
 
 
@@ -149,7 +149,7 @@ class CiviCRM_WP_Profile_Sync_BuddyPress {
 	public function include_files() {
 
 		// Include class files.
-		//include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-field.php';
+		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-xprofile.php';
 
 		// Maybe include BuddyBoss class.
 		if ( $this->is_buddyboss === true ) {
@@ -168,7 +168,7 @@ class CiviCRM_WP_Profile_Sync_BuddyPress {
 	public function setup_objects() {
 
 		// Init objects.
-		//$this->field = new CiviCRM_Profile_Sync_BP_xProfile_Field( $this );
+		$this->xprofile = new CiviCRM_Profile_Sync_BP_xProfile( $this );
 
 		// Maybe init BuddyBoss object.
 		if ( $this->is_buddyboss === true ) {

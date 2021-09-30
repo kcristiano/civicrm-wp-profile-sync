@@ -1159,54 +1159,6 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Phone extends CiviCRM_Profile_Sync_ACF_Ci
 
 
 	/**
-	 * Get the Phone Field options for a given Field ID.
-	 *
-	 * @since 0.5
-	 *
-	 * @param string $name The name of the field.
-	 * @return array $field The array of field data.
-	 */
-	public function get_by_name( $name ) {
-
-		// Init return.
-		$field = [];
-
-		// Try and init CiviCRM.
-		if ( ! $this->civicrm->is_initialised() ) {
-			return $field;
-		}
-
-		// Construct params.
-		$params = [
-			'version' => 3,
-			'name' => $name,
-			'action' => 'get',
-		];
-
-		// Call the API.
-		$result = civicrm_api( 'Phone', 'getfield', $params );
-
-		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
-			return $field;
-		}
-
-		// Bail if there are no results.
-		if ( empty( $result['values'] ) ) {
-			return $field;
-		}
-
-		// The result set is the item.
-		$field = $result['values'];
-
-		// --<
-		return $field;
-
-	}
-
-
-
-	/**
 	 * Get the mapped Phone Field name if present.
 	 *
 	 * @since 0.5
@@ -1401,7 +1353,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Phone extends CiviCRM_Profile_Sync_ACF_Ci
 		}
 
 		// Get Phone Field data.
-		$field_data = $this->get_by_name( $phone_field_name );
+		$field_data = $this->plugin->civicrm->phone->get_by_name( $phone_field_name );
 
 		// Set the "maxlength" attribute.
 		if ( ! empty( $field_data['maxlength'] ) ) {

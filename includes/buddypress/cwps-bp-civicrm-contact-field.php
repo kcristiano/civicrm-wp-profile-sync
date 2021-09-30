@@ -50,13 +50,13 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	public $civicrm;
 
 	/**
-	 * BuddyPress Field object.
+	 * BuddyPress xProfile object.
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object $civicrm The BuddyPress Field object.
+	 * @var object $xprofile The BuddyPress xProfile object.
 	 */
-	public $field;
+	public $xprofile;
 
 	/**
 	 * Contact Fields that all Contact Types have in common.
@@ -158,15 +158,15 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	 *
 	 * @since 0.5
 	 *
-	 * @param object $field The BuddyPress Field object.
+	 * @param object $xprofile The BuddyPress xProfile object.
 	 */
-	public function __construct( $field ) {
+	public function __construct( $xprofile ) {
 
 		// Store references to objects.
-		$this->plugin = $field->bp_loader->plugin;
-		$this->bp_loader = $field->bp_loader;
+		$this->plugin = $xprofile->bp_loader->plugin;
+		$this->bp_loader = $xprofile->bp_loader;
 		$this->civicrm = $this->plugin->civicrm;
-		$this->field = $field;
+		$this->xprofile = $xprofile;
 
 		// Init when the BuddyPress Field object is loaded.
 		add_action( 'cwps/buddypress/field/loaded', [ $this, 'initialise' ] );

@@ -50,13 +50,13 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 	public $civicrm;
 
 	/**
-	 * BuddyPress Field object.
+	 * BuddyPress xProfile object.
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object $civicrm The BuddyPress Field object.
+	 * @var object $xprofile The BuddyPress xProfile object.
 	 */
-	public $field;
+	public $xprofile;
 
 	/**
 	 * CiviCRM Custom Field data types that can have "Select", "Radio" and
@@ -110,15 +110,15 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 	 *
 	 * @since 0.5
 	 *
-	 * @param object $field The BuddyPress Field object.
+	 * @param object $xprofile The BuddyPress xProfile object.
 	 */
-	public function __construct( $field ) {
+	public function __construct( $xprofile ) {
 
 		// Store references to objects.
-		$this->plugin = $field->bp_loader->plugin;
-		$this->bp_loader = $field->bp_loader;
+		$this->plugin = $xprofile->bp_loader->plugin;
+		$this->bp_loader = $xprofile->bp_loader;
 		$this->civicrm = $this->plugin->civicrm;
-		$this->field = $field;
+		$this->xprofile = $xprofile;
 
 		// Init when the BuddyPress Field object is loaded.
 		add_action( 'cwps/buddypress/field/loaded', [ $this, 'initialise' ] );
@@ -160,7 +160,6 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 		add_filter( 'cwps/bp/query_settings/custom_fields_filter', [ $this, 'text_settings_filter' ], 10, 3 );
 		add_filter( 'cwps/bp/query_settings/custom_fields_filter', [ $this, 'textarea_settings_filter' ], 10, 3 );
 		add_filter( 'cwps/bp/query_settings/custom_fields_filter', [ $this, 'url_settings_filter' ], 10, 3 );
-		//add_filter( 'cwps/bp/query_settings/custom_fields_filter', [ $this, 'true_false_settings_filter' ], 10, 3 );
 
 		// Filter the xProfile Field options when saving on the "Edit Field" screen.
 		add_filter( 'cwps/bp/field/query_options', [ $this, 'checkbox_settings_get' ], 10, 3 );
@@ -351,7 +350,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 		$custom_field_id = false;
 
 		// Get the BuddyPress CiviCRM Field value.
-		$bp_field_value = $this->field->get_mapping_data( $field, 'value' );
+		$bp_field_value = $this->xprofile->get_mapping_data( $field, 'value' );
 
 		// Get the mapped Custom Field ID.
 		$custom_field_id = $this->id_get( $bp_field_value );
@@ -1079,41 +1078,6 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 			foreach ( $custom_group as $custom_field ) {
 				if ( ! empty( $custom_field['data_type'] ) && $custom_field['data_type'] == 'Memo' ) {
 					if ( ! empty( $custom_field['html_type'] ) && $custom_field['html_type'] == 'RichTextEditor' ) {
-						$filtered_fields[$custom_group_name][] = $custom_field;
-					}
-				}
-			}
-		}
-
-		// --<
-		return $filtered_fields;
-
-	}
-
-
-
-	/**
-	 * Filter the Custom Fields for the Setting of a "True/False" Field.
-	 *
-	 * @since 0.5
-	 *
-	 * @param array $filtered_fields The existing array of filtered Custom Fields.
-	 * @param array $custom_fields The array of Custom Fields.
-	 * @param string $field_type The BuddyPress Field Type.
-	 * @return array $filtered_fields The modified array of filtered Custom Fields.
-	 */
-	public function true_false_settings_filter( $filtered_fields, $custom_fields, $field_type ) {
-
-		// Bail early if not our Field Type.
-		if ( 'true_false' !== $field_type ) {
-			return $filtered_fields;
-		}
-
-		// Filter fields to include only Boolean/Radio.
-		foreach ( $custom_fields as $custom_group_name => $custom_group ) {
-			foreach ( $custom_group as $custom_field ) {
-				if ( ! empty( $custom_field['data_type'] ) && $custom_field['data_type'] == 'Boolean' ) {
-					if ( ! empty( $custom_field['html_type'] ) && $custom_field['html_type'] == 'Radio' ) {
 						$filtered_fields[$custom_group_name][] = $custom_field;
 					}
 				}

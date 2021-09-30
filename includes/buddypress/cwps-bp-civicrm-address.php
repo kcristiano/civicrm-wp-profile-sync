@@ -50,13 +50,13 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 	public $civicrm;
 
 	/**
-	 * BuddyPress Field object.
+	 * BuddyPress xProfile object.
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var object $civicrm The BuddyPress Field object.
+	 * @var object $xprofile The BuddyPress xProfile object.
 	 */
-	public $field;
+	public $xprofile;
 
 	/**
 	 * "CiviCRM Field" field value prefix in the BuddyPress Field data.
@@ -102,15 +102,15 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 	 *
 	 * @since 0.5
 	 *
-	 * @param object $field The BuddyPress Field object.
+	 * @param object $xprofile The BuddyPress xProfile object.
 	 */
-	public function __construct( $field ) {
+	public function __construct( $xprofile ) {
 
 		// Store references to objects.
-		$this->plugin = $field->bp_loader->plugin;
-		$this->bp_loader = $field->bp_loader;
+		$this->plugin = $xprofile->bp_loader->plugin;
+		$this->bp_loader = $xprofile->bp_loader;
 		$this->civicrm = $this->plugin->civicrm;
-		$this->field = $field;
+		$this->xprofile = $xprofile;
 
 		// Init when the BuddyPress Field object is loaded.
 		add_action( 'cwps/buddypress/field/loaded', [ $this, 'initialise' ] );
@@ -301,7 +301,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 			}
 
 			// Get the CiviCRM Custom Field and Address Field.
-			$custom_field_id = $this->field->custom_field->id_get( $args['value'] );
+			$custom_field_id = $this->xprofile->custom_field->id_get( $args['value'] );
 			$address_field_name = $this->name_get( $args['value'] );
 
 			// Do we have a synced Custom Field or Address Field?
@@ -340,7 +340,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 				*/
 
 				// Parse value by Field Type.
-				$value = $this->field->value_get_for_civicrm( $data['value'], $data['field_type'], $args );
+				$value = $this->xprofile->value_get_for_civicrm( $data['value'], $data['field_type'], $args );
 
 				// Add it to the field data.
 				$address_data[$code] = $value;
@@ -349,7 +349,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 
 		}
 
-		///*
+		/*
 		$e = new \Exception();
 		$trace = $e->getTraceAsString();
 		error_log( print_r( [
@@ -357,7 +357,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 			'address_data' => $address_data,
 			//'backtrace' => $trace,
 		], true ) );
-		//*/
+		*/
 
 		// --<
 		return $address_data;
@@ -723,54 +723,6 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 
 
 
-	/**
-	 * Get the Address Field options for a given Field ID.
-	 *
-	 * @since 0.5
-	 *
-	 * @param string $name The name of the field.
-	 * @return array $field The array of field data.
-	 */
-	public function get_by_name( $name ) {
-
-		// Init return.
-		$field = [];
-
-		// Try and init CiviCRM.
-		if ( ! $this->civicrm->is_initialised() ) {
-			return $field;
-		}
-
-		// Construct params.
-		$params = [
-			'version' => 3,
-			'name' => $name,
-			'action' => 'get',
-		];
-
-		// Call the API.
-		$result = civicrm_api( 'Address', 'getfield', $params );
-
-		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
-			return $field;
-		}
-
-		// Bail if there are no results.
-		if ( empty( $result['values'] ) ) {
-			return $field;
-		}
-
-		// The result set is the item.
-		$field = $result['values'];
-
-		// --<
-		return $field;
-
-	}
-
-
-
 	// -------------------------------------------------------------------------
 
 
@@ -952,7 +904,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 		}
 
 		// Get the full details for the CiviCRM Field.
-		$civicrm_field = $this->get_by_name( $field_name );
+		$civicrm_field = $this->plugin->civicrm->address->get_by_name( $field_name );
 
 		/*
 		$e = new \Exception();
