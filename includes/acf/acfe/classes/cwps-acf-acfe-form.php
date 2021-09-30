@@ -155,6 +155,9 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 		// Add Form Actions Javascript.
 		add_action( 'acfe/form/submit', [ $this, 'form_action_query_vars_clear' ] );
 
+		// Set a better Form Wrapper class.
+		add_filter( 'acfe/form/load', [ $this, 'form_wrapper' ], 10, 2 );
+
 	}
 
 
@@ -171,6 +174,29 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 
 		// Clear the array of Action results.
 		set_query_var( 'acfe_form_actions', [] );
+
+	}
+
+
+
+	/**
+	 * Alters the default "Success Wrapper" class.
+	 *
+	 * @since 0.5
+	 *
+	 * @param array $form The ACF Form data array.
+	 * @param integer $post_id The numeric ID of the WordPress Post.
+	 * @return array $form The modified ACF Form data array.
+	 */
+	public function form_wrapper( $form, $post_id ) {
+
+		// Alter the default "Success Wrapper".
+		if ( $form['html_updated_message'] === '<div id="message" class="updated">%s</div>' ) {
+			$form['html_updated_message'] = '<div id="message" class="acfe-success">%s</div>';
+		}
+
+		// --<
+		return $form;
 
 	}
 
