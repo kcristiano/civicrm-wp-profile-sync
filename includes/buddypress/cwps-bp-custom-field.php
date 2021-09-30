@@ -14,9 +14,9 @@ defined( 'ABSPATH' ) || exit;
 
 
 /**
- * BuddyPress CiviCRM Profile Sync CiviCRM Custom Field Class.
+ * CiviCRM Profile Sync BuddyPress CiviCRM Custom Field Class.
  *
- * A class that encapsulates CiviCRM Custom Field functionality.
+ * A class that encapsulates BuddyPress CiviCRM Custom Field functionality.
  *
  * @since 0.5
  */
@@ -120,7 +120,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 		$this->civicrm = $this->plugin->civicrm;
 		$this->field = $field;
 
-		// Init when the CiviCRM object is loaded.
+		// Init when the BuddyPress Field object is loaded.
 		add_action( 'cwps/buddypress/field/loaded', [ $this, 'initialise' ] );
 
 	}
@@ -149,7 +149,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 	public function register_hooks() {
 
 		// Listen for queries from the ACF Field class.
-		add_filter( 'cwps/bp/field/query_setting_choices', [ $this, 'query_setting_choices' ], 20, 3 );
+		add_filter( 'cwps/bp/field/query_setting_choices', [ $this, 'query_setting_choices' ], 100, 4 );
 
 		// Filter the "CiviCRM Field" select to include only Custom Fields of the right type on the "Edit Field" sceen.
 		add_filter( 'cwps/bp/query_settings/custom_fields_filter', [ $this, 'checkbox_settings_filter' ], 10, 3 );
@@ -206,29 +206,45 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 	 *
 	 * @param array $choices The existing array of choices for the Setting Field.
 	 * @param string $field_type The BuddyPress Field Type.
-	 * @param array $contact_type The array of Contact Type data.
+	 * @param string $entity_type The CiviCRM Entity Type.
+	 * @param array $entity_type_data The array of Entity Type data.
 	 * @return array $choices The modified array of choices for the Setting Field.
 	 */
-	public function query_setting_choices( $choices, $field_type, $contact_type ) {
+	public function query_setting_choices( $choices, $field_type, $entity_type, $entity_type_data ) {
 
 		// Bail if there's something amiss.
-		if ( empty( $field_type ) || empty( $contact_type ) ) {
+		if ( empty( $entity_type ) ||  empty( $field_type ) ) {
 			return $choices;
 		}
 
-		// Get the "name" of the Contact Type.
-		$name = $contact_type['name'];
-		$subtype_name = '';
+		// Get Custom Fields for the "Contact" Entity Type.
+		if ( $entity_type === 'Contact' ) {
 
-		// Alter names if this is a Sub-type.
-		if ( ! empty( $contact_type['parent_id'] ) ) {
-			$parent_type = $this->civicrm->contact->type_get_by_id( $contact_type['parent_id'] );
-			$name = $parent_type['name'];
-			$subtype_name = $contact_type['name'];
+			// We need Contact Type data.
+			if ( empty( $entity_type_data ) ) {
+				return $choices;
+			}
+
+			// Get the "name" of the Contact Type.
+			$name = $entity_type_data['name'];
+			$subtype_name = '';
+
+			// Alter names if this is a Sub-type.
+			if ( ! empty( $entity_type_data['parent_id'] ) ) {
+				$parent_type = $this->civicrm->contact->type_get_by_id( $entity_type_data['parent_id'] );
+				$name = $parent_type['name'];
+				$subtype_name = $entity_type_data['name'];
+			}
+
+			// Get the Custom Fields for this Contact Type.
+			$custom_fields = $this->plugin->civicrm->custom_field->get_for_contact_type( $name, $subtype_name );
+
+		} else {
+
+			// Get Custom Fields for other Entity Types.
+			$custom_fields = $this->plugin->civicrm->custom_field->get_for_entity_type( $entity_type, '' );
+
 		}
-
-		// Get the Custom Fields for this Contact Type.
-		$custom_fields = $this->plugin->civicrm->custom_field->get_for_contact_type( $name, $subtype_name );
 
 		/**
 		 * Filter the Custom Fields.

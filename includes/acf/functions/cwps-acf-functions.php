@@ -102,8 +102,8 @@ function cwps_get_phone_numbers( $selector, $post_id = null ) {
 	// Get reference to plugin.
 	$cwps = civicrm_wp_profile_sync()->acf;
 
-	// Get Location Types.
-	$location_types = $cwps->civicrm->phone->location_types_get();
+	// Phone Locations are standard Location Types.
+	$location_types = $cwps->plugin->civicrm->address->location_types_get();
 
 	// Build Location Types array for reference.
 	$locations = [];
@@ -112,7 +112,7 @@ function cwps_get_phone_numbers( $selector, $post_id = null ) {
 	}
 
 	// Get Phone Types.
-	$phone_types = $cwps->civicrm->phone->phone_types_get();
+	$phone_types = $cwps->plugin->civicrm->phone->phone_types_get();
 
 	// Format them.
 	foreach ( $records as $record ) {
@@ -559,8 +559,8 @@ function cwps_get_ims( $selector, $post_id = null ) {
 	// Get reference to plugin.
 	$cwps = civicrm_wp_profile_sync()->acf;
 
-	// Get Location Types.
-	$location_types = $cwps->civicrm->im->location_types_get();
+	// Instant Messenger Locations are standard Location Types.
+	$location_types = $cwps->plugin->civicrm->address->location_types_get();
 
 	// Build Location Types array for reference.
 	$locations = [];
@@ -1000,7 +1000,7 @@ function cwps_get_addresses( $selector, $post_id = null ) {
 	$cwps = civicrm_wp_profile_sync()->acf;
 
 	// Get Location Types.
-	$location_types = $cwps->civicrm->address->location_types_get();
+	$location_types = $cwps->plugin->civicrm->address->location_types_get();
 
 	// Build Location Types array for reference.
 	$locations = [];
@@ -1027,7 +1027,7 @@ function cwps_get_addresses( $selector, $post_id = null ) {
 
 		// Convert Country ACF data to template data.
 		$state_province_id = empty( $record['field_address_state_province_id'] ) ? '' : (int) $record['field_address_state_province_id'];
-		$state_province = $cwps->civicrm->address->state_province_get_by_id( $state_province_id );
+		$state_province = $cwps->plugin->civicrm->address->state_province_get_by_id( $state_province_id );
 		if ( ! empty( $state_province ) ) {
 			$state = esc_html( $state_province['name'] );
 			$state_short = esc_html( $state_province['abbreviation'] );
@@ -1035,7 +1035,7 @@ function cwps_get_addresses( $selector, $post_id = null ) {
 
 		// Convert Country ACF data to template data.
 		$country_id = empty( $record['field_address_country_id'] ) ? '' : (int) $record['field_address_country_id'];
-		$country_data = $cwps->civicrm->address->country_get_by_id( $country_id );
+		$country_data = $cwps->plugin->civicrm->address->country_get_by_id( $country_id );
 		if ( ! empty( $country_data ) ) {
 			$country = esc_html( $country_data['name'] );
 			$country_short = esc_html( $country_data['iso_code'] );
@@ -1136,7 +1136,7 @@ function cwps_get_address_by_type_id( $selector, $location_type_id, $post_id = n
 
 		// Convert Country ACF data to template data.
 		$state_province_id = empty( $record['field_address_state_province_id'] ) ? '' : (int) $record['field_address_state_province_id'];
-		$state_province = $cwps->civicrm->address->state_province_get_by_id( $state_province_id );
+		$state_province = $cwps->plugin->civicrm->address->state_province_get_by_id( $state_province_id );
 		if ( ! empty( $state_province ) ) {
 			$state = esc_html( $state_province['name'] );
 			$state_short = esc_html( $state_province['abbreviation'] );
@@ -1144,7 +1144,7 @@ function cwps_get_address_by_type_id( $selector, $location_type_id, $post_id = n
 
 		// Convert Country ACF data to template data.
 		$country_id = empty( $record['field_address_country_id'] ) ? '' : (int) $record['field_address_country_id'];
-		$country_data = $cwps->civicrm->address->country_get_by_id( $country_id );
+		$country_data = $cwps->plugin->civicrm->address->country_get_by_id( $country_id );
 		if ( ! empty( $country_data ) ) {
 			$country = esc_html( $country_data['name'] );
 			$country_short = esc_html( $country_data['iso_code'] );
@@ -1284,7 +1284,7 @@ function cwps_get_primary_address( $selector, $post_id = null ) {
 
 	// Convert Country ACF data to template data.
 	$state_province_id = empty( $record['field_address_state_province_id'] ) ? '' : (int) $record['field_address_state_province_id'];
-	$state_province = $cwps->civicrm->address->state_province_get_by_id( $state_province_id );
+	$state_province = $cwps->plugin->civicrm->address->state_province_get_by_id( $state_province_id );
 	if ( ! empty( $state_province ) ) {
 		$state = esc_html( $state_province['name'] );
 		$state_short = esc_html( $state_province['abbreviation'] );
@@ -1292,7 +1292,7 @@ function cwps_get_primary_address( $selector, $post_id = null ) {
 
 	// Convert Country ACF data to template data.
 	$country_id = empty( $record['field_address_country_id'] ) ? '' : (int) $record['field_address_country_id'];
-	$country_data = $cwps->civicrm->address->country_get_by_id( $country_id );
+	$country_data = $cwps->plugin->civicrm->address->country_get_by_id( $country_id );
 	if ( ! empty( $country_data ) ) {
 		$country = esc_html( $country_data['name'] );
 		$country_short = esc_html( $country_data['iso_code'] );
@@ -1461,7 +1461,7 @@ function cwps_get_cities( $selector, $post_id = null ) {
 	$cwps = civicrm_wp_profile_sync()->acf;
 
 	// Get Location Types.
-	$location_types = $cwps->civicrm->address->location_types_get();
+	$location_types = $cwps->plugin->civicrm->address->location_types_get();
 
 	// Build Location Types array for reference.
 	$locations = [];
@@ -1674,7 +1674,7 @@ function cwps_get_states( $selector, $post_id = null ) {
 	$cwps = civicrm_wp_profile_sync()->acf;
 
 	// Get Location Types.
-	$location_types = $cwps->civicrm->address->location_types_get();
+	$location_types = $cwps->plugin->civicrm->address->location_types_get();
 
 	// Build Location Types array for reference.
 	$locations = [];
@@ -1683,7 +1683,7 @@ function cwps_get_states( $selector, $post_id = null ) {
 	}
 
 	// Get States/Provinces.
-	$state_provinces = $cwps->civicrm->address->state_provinces_get();
+	$state_provinces = $cwps->plugin->civicrm->address->state_provinces_get();
 
 	// Format them.
 	foreach ( $records as $record ) {
@@ -1768,7 +1768,7 @@ function cwps_get_state_by_type_id( $selector, $location_type_id, $return = 'lis
 	$cwps = civicrm_wp_profile_sync()->acf;
 
 	// Get States/Provinces.
-	$states = $cwps->civicrm->address->state_provinces_get();
+	$states = $cwps->plugin->civicrm->address->state_provinces_get();
 
 	// Init filtered array.
 	$filtered = [];
@@ -1846,7 +1846,7 @@ function cwps_get_primary_state( $selector, $post_id = null ) {
 	$cwps = civicrm_wp_profile_sync()->acf;
 
 	// Get States/Provinces.
-	$states = $cwps->civicrm->address->state_provinces_get();
+	$states = $cwps->plugin->civicrm->address->state_provinces_get();
 
 	// Assign State to return.
 	$state = (string) $states[$record['field_address_state_province_id']];

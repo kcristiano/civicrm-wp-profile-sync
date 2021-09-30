@@ -442,7 +442,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 		if ( ! empty( $address['country_short'] ) ) {
 
 			// Add the Country data if we get one.
-			$country = $this->civicrm->address->country_get_by_short( $address['country_short'] );
+			$country = $this->plugin->civicrm->address->country_get_by_short( $address['country_short'] );
 			if ( ! empty( $country ) ) {
 				$address_data['country_id'] = $country['id'];
 				$address_data['country'] = $country['name'];
@@ -500,7 +500,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 		if ( ! empty( $contact->address ) && is_array( $contact->address ) ) {
 
 			// Get the full Addresses data and add to property, cast as object.
-			$contact_addresses_pre = $this->civicrm->address->addresses_get_by_contact_id( $contact->contact_id );
+			$contact_addresses_pre = $this->plugin->civicrm->address->addresses_get_by_contact_id( $contact->contact_id );
 			foreach ( $contact_addresses_pre as $contact_address ) {
 				$key = $contact_address->id;
 				$this->contact_addresses_pre[$key] = $contact_address;
@@ -533,7 +533,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 
 		// Get the current Contact Addresses.
 		$contact_addresses = [];
-		$current_addresses = $this->civicrm->address->addresses_get_by_contact_id( $args['objectId'] );
+		$current_addresses = $this->plugin->civicrm->address->addresses_get_by_contact_id( $args['objectId'] );
 		foreach ( $current_addresses as $current_address ) {
 			$key = $current_address->id;
 			$contact_addresses[$key] = $current_address;
@@ -576,7 +576,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 
 				/*
 				// If this address is a "Master Address" then it will return "Shared Addresses".
-				$addresses_shared = $this->civicrm->address->addresses_shared_get_by_id( $address->id );
+				$addresses_shared = $this->plugin->civicrm->address->addresses_shared_get_by_id( $address->id );
 
 				// Bail if there are none.
 				if ( empty( $addresses_shared ) ) {
@@ -631,7 +631,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 		$this->address_fields_update( $address );
 
 		// If this address is a "Master Address" then it will return "Shared Addresses".
-		$addresses_shared = $this->civicrm->address->addresses_shared_get_by_id( $address->id );
+		$addresses_shared = $this->plugin->civicrm->address->addresses_shared_get_by_id( $address->id );
 
 		// Bail if there are none.
 		if ( empty( $addresses_shared ) ) {
@@ -676,7 +676,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 		}
 
 		// Grab the previous Address data from the database via API.
-		$this->address_pre = $this->civicrm->address->address_get_by_id( $address->id );
+		$this->address_pre = $this->plugin->civicrm->address->address_get_by_id( $address->id );
 
 	}
 
@@ -706,7 +706,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 		$this->address_fields_update( $address, $this->address_pre );
 
 		// If this address is a "Master Address" then it will return "Shared Addresses".
-		$addresses_shared = $this->civicrm->address->addresses_shared_get_by_id( $address->id );
+		$addresses_shared = $this->plugin->civicrm->address->addresses_shared_get_by_id( $address->id );
 
 		// Bail if there are none.
 		if ( empty( $addresses_shared ) ) {
@@ -746,7 +746,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 		$this->address_fields_update( $address );
 
 		// If this address is a "Master Address" then it will return "Shared Addresses".
-		$addresses_shared = $this->civicrm->address->addresses_shared_get_by_id( $address->id );
+		$addresses_shared = $this->plugin->civicrm->address->addresses_shared_get_by_id( $address->id );
 
 		// Bail if there are none.
 		if ( empty( $addresses_shared ) ) {
@@ -1030,7 +1030,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 
 		// Add the State/Province if we get one.
 		if ( ! empty( $address->state_province_id ) ) {
-			$state_province = $this->civicrm->address->state_province_get_by_id( $address->state_province_id );
+			$state_province = $this->plugin->civicrm->address->state_province_get_by_id( $address->state_province_id );
 			if ( ! empty( $state_province ) ) {
 				$field_data['state'] = $state_province['name'];
 				$field_data['state_short'] = $state_province['abbreviation'];
@@ -1041,7 +1041,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 		if ( ! empty( $address->country_id ) ) {
 
 			// Add the Country if we get one.
-			$country = $this->civicrm->address->country_get_by_id( $address->country_id );
+			$country = $this->plugin->civicrm->address->country_get_by_id( $address->country_id );
 			if ( ! empty( $country ) ) {
 				$field_data['country'] = $country['name'];
 				$field_data['country_short'] = $country['iso_code'];
@@ -1054,7 +1054,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 
 				// Add the Country if we get one.
 				if ( ! empty( $state_province['country_id'] ) ) {
-					$country = $this->civicrm->address->country_get_by_id( $state_province['country_id'] );
+					$country = $this->plugin->civicrm->address->country_get_by_id( $state_province['country_id'] );
 					if ( ! empty( $country ) ) {
 						$field_data['country'] = $country['name'];
 						$field_data['country_short'] = $country['iso_code'];
@@ -1245,7 +1245,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 		}
 
 		// Get all Location Types.
-		$types = $this->civicrm->address->location_types_get();
+		$types = $this->plugin->civicrm->address->location_types_get();
 
 		// Bail if there are none.
 		if ( empty( $types ) ) {
@@ -1578,7 +1578,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Google_Map extends CiviCRM_Profile_Sync_A
 			}
 
 			// Get this Contact's Addresses.
-			$addresses = $this->civicrm->address->addresses_get_by_contact_id( $contact_id );
+			$addresses = $this->plugin->civicrm->address->addresses_get_by_contact_id( $contact_id );
 
 			// Init location.
 			$location = false;

@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
 
 
 /**
- * BuddyPress CiviCRM Profile Sync CiviCRM Contact Field Class.
+ * CiviCRM Profile Sync BuddyPress CiviCRM Contact Field Class.
  *
  * A class that encapsulates BuddyPress CiviCRM Contact Field functionality.
  *
@@ -168,7 +168,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 		$this->civicrm = $this->plugin->civicrm;
 		$this->field = $field;
 
-		// Init when the CiviCRM object is loaded.
+		// Init when the BuddyPress Field object is loaded.
 		add_action( 'cwps/buddypress/field/loaded', [ $this, 'initialise' ] );
 
 	}
@@ -197,7 +197,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	public function register_hooks() {
 
 		// Listen for queries from the BuddyPress Field class.
-		add_filter( 'cwps/bp/field/query_setting_choices', [ $this, 'query_setting_choices' ], 10, 3 );
+		add_filter( 'cwps/bp/field/query_setting_choices', [ $this, 'query_setting_choices' ], 10, 4 );
 
 		// Filter the xProfile Field options when saving on the "Edit Field" screen.
 		add_filter( 'cwps/bp/field/query_options', [ $this, 'checkbox_settings_modify' ], 10, 3 );
@@ -241,18 +241,24 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	 *
 	 * @param array $choices The existing array of choices for the Setting Field.
 	 * @param string $field_type The BuddyPress Field Type.
-	 * @param array $contact_type The array of Contact Type data.
+	 * @param string $entity_type The CiviCRM Entity Type.
+	 * @param array $entity_type_data The array of Entity Type data.
 	 * @return array $choices The modified array of choices for the Setting Field.
 	 */
-	public function query_setting_choices( $choices, $field_type, $contact_type ) {
+	public function query_setting_choices( $choices, $field_type, $entity_type, $entity_type_data ) {
 
 		// Bail if there's something amiss.
-		if ( empty( $field_type ) || empty( $contact_type ) ) {
+		if ( empty( $entity_type ) ||  empty( $field_type ) || empty( $entity_type_data ) ) {
+			return $choices;
+		}
+
+		// Bail if not the "Contact" Entity Type.
+		if ( $entity_type !== 'Contact' ) {
 			return $choices;
 		}
 
 		// Get the Contact Fields for this BuddyPress Field Type.
-		$contact_fields = $this->get_for_bp_field_type( $field_type, $contact_type );
+		$contact_fields = $this->get_for_bp_field_type( $field_type, $entity_type_data );
 
 		// Build Contact Field choices array for dropdown.
 		if ( ! empty( $contact_fields ) ) {
@@ -461,7 +467,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	 * @since 0.5
 	 *
 	 * @param string $name The name of the Contact Field.
-	 * @return array $fields The array of field names.
+	 * @return string $type The type of BuddyPress Field.
 	 */
 	public function get_bp_type( $name = '' ) {
 
@@ -878,37 +884,6 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 
 
 
-	/**
-	 * Get the Fields for a BuddyPress Field and mapped to a CiviCRM Contact Type.
-	 *
-	 * @since 0.5
-	 *
-	 * @param array $types The Contact Type(s) to query.
-	 * @param string $type The type of BuddyPress Field.
-	 * @return array $fields The array of field names.
-	 */
-	public function get_by_bp_type( $types = [ 'Individual' ], $type = '' ) {
-
-		// Init return.
-		$contact_fields = [];
-
-		// Get the public fields defined in this class.
-		$public_fields = $this->get_public( $types );
-
-		// Skip all but those mapped to the type of BuddyPress Field.
-		foreach ( $public_fields as $key => $value ) {
-			if ( $type == $value ) {
-				$contact_fields[$key] = $value;
-			}
-		}
-
-		// --<
-		return $contact_fields;
-
-	}
-
-
-
 	// -------------------------------------------------------------------------
 
 
@@ -980,6 +955,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 			return $options;
 		}
 
+		// Get the full details for the CiviCRM Field.
 		$civicrm_field = $this->plugin->civicrm->contact_field->get_by_name( $contact_field_name );
 
 		/*

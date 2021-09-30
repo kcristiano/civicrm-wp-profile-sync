@@ -332,8 +332,8 @@ class CiviCRM_Profile_Sync_ACF_Shortcode_Instant_Messenger {
 		// Init return.
 		$options = [ '' => __( 'Select a Location Type', 'civicrm-wp-profile-sync' ) ];
 
-		// Get Locations.
-		$location_types = $this->im->location_types_get();
+		// Instant Messenger Locations are standard Location Types.
+		$location_types = $this->plugin->civicrm->address->location_types_get();
 
 		// Build Location Types choices array for dropdown.
 		foreach ( $location_types as $location_type ) {

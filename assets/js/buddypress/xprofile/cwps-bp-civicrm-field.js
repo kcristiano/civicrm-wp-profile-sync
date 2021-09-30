@@ -138,7 +138,7 @@ var CWPS_BP_Field = CWPS_BP_Field || {};
 		 *
 		 * @since 0.5
 		 *
-		 * @param {Integer} The numeric ID of the Contact Type.
+		 * @param {Integer} contact_type_id The numeric ID of the Contact Type.
 		 * @return {Array} The array of data for the Options.
 		 */
 		this.get_options_for_contact_type = function( contact_type_id ) {
@@ -146,6 +146,26 @@ var CWPS_BP_Field = CWPS_BP_Field || {};
 			if ( options[me.field_type] ) {
 				if ( options[me.field_type][contact_type_id] ) {
 					return options[me.field_type][contact_type_id];
+				}
+			}
+			return [];
+		};
+
+		/**
+		 * Getter for retrieving the array of Options for a given Entity.
+		 *
+		 * This relies on a BuddyPress Field Type being set.
+		 *
+		 * @since 0.5
+		 *
+		 * @param {String} entity The Entity Type identifier.
+		 * @return {Array} The array of data for the Options.
+		 */
+		this.get_options_for = function( entity ) {
+			var options = me.get_setting('options');
+			if ( options[me.field_type] ) {
+				if ( options[me.field_type][entity] ) {
+					return options[me.field_type][entity];
 				}
 			}
 			return [];
@@ -179,7 +199,9 @@ var CWPS_BP_Field = CWPS_BP_Field || {};
 		this.dom_ready = function() {
 
 			var field_type = $('#fieldtype').val(),
-				civicrm_field = $('#cwps_civicrm_field').val();
+				entity_type = $('#cwps_civicrm_entity_type').val(),
+				civicrm_field = $('#cwps_civicrm_field').val(),
+				name_field = CWPS_BP_Field.settings.get_setting( 'fullname_field' );
 
 			// Store the initial BuddyPress Field Type.
 			CWPS_BP_Field.settings.set_field_type( field_type );
@@ -191,9 +213,37 @@ var CWPS_BP_Field = CWPS_BP_Field || {};
 
 				// Maybe show the reminder.
 				if ( field_type == 'selectbox' || field_type == 'radio' || field_type == 'checkbox' ) {
-					$( '.cwps-reminder' ).show();
+					$('.cwps-reminder').show();
 				}
 
+			}
+
+			// Maybe show the metabox.
+			if (
+				! name_field &&
+				field_type !== 'wp-biography' &&
+				field_type !== 'wp-textbox' &&
+				field_type !== 'checkbox_acceptance'
+			) {
+				$('#cwps-bp-civicrm-field').show();
+			}
+
+			// Maybe show the Contact selectors.
+			if ( entity_type === 'Contact' ) {
+				$('.cwps-contact-type').show();
+				$('.cwps-contact-subtype').show();
+			}
+
+			// Maybe show the Address selectors.
+			if ( entity_type === 'Address' ) {
+				$('.cwps-location-type').show();
+				$('.cwps-phone-type').hide();
+			}
+
+			// Maybe show the Phone selectors.
+			if ( entity_type === 'Phone' ) {
+				$('.cwps-location-type').show();
+				$('.cwps-phone-type').show();
 			}
 
 			// Add listeners.
@@ -225,21 +275,106 @@ var CWPS_BP_Field = CWPS_BP_Field || {};
 				me.reset();
 
 				// Show by default.
-				$( '#cwps-bp-civicrm-field' ).show();
+				$('#cwps-bp-civicrm-field').show();
 
 				// Never show for WordPress sync Fields.
 				if ( forWhat === 'wp-biography' || forWhat === 'wp-textbox' ) {
-					$( '#cwps-bp-civicrm-field' ).hide();
+					$('#cwps-bp-civicrm-field').hide();
 				}
 
 				// Never show for Checkbox Acceptance Field.
 				if ( forWhat === 'checkbox_acceptance' ) {
-					$( '#cwps-bp-civicrm-field' ).hide();
+					$('#cwps-bp-civicrm-field').hide();
 				}
 
 				// Show reminder text for some Fields.
 				if ( forWhat === 'selectbox' || forWhat === 'checkbox' || forWhat === 'radio' ) {
-					$( '.cwps-reminder' ).show();
+					$('.cwps-reminder').show();
+				}
+
+			});
+
+			/**
+			 * Listen for changes to the Entity Type.
+			 *
+			 * @since 0.5
+			 */
+			$('#cwps_civicrm_entity_type').on( 'change', function() {
+
+				var entity_type, group, data, new_options = [],
+					optgroup, options, placeholder;
+
+				// Get current value.
+				entity_type = $('#cwps_civicrm_entity_type').val();
+
+				// Rereset everything.
+				me.reset();
+
+				// Hide all selectors.
+				$('.cwps-contact-type').hide();
+				$('.cwps-contact-subtype').hide();
+				$('.cwps-location-type').hide();
+				$('.cwps-phone-type').hide();
+
+				// Disable CiviCRM Field select.
+				me.civicrm_field_reset();
+				$('#cwps_civicrm_field').prop( 'disabled', true );
+
+				// Bail if no Entity Type.
+				if ( ! entity_type ) {
+					me.civicrm_field_add_placeholder();
+					return;
+				}
+
+				// Maybe show the Contact selectors.
+				if ( entity_type === 'Contact' ) {
+					$('.cwps-contact-type').show();
+					$('.cwps-contact-subtype').show();
+					me.civicrm_field_add_placeholder();
+					return;
+				}
+
+				// Maybe show the Address choices.
+				if ( entity_type === 'Address' || entity_type === 'Phone' ) {
+
+					// Maybe show the Address selectors.
+					if ( entity_type === 'Address' ) {
+						$('.cwps-location-type').show();
+						$('.cwps-phone-type').hide();
+					}
+
+					// Maybe show the Phone selectors.
+					if ( entity_type === 'Phone' ) {
+						$('.cwps-location-type').show();
+						$('.cwps-phone-type').show();
+					}
+
+					// Get Options for the Entity.
+					data = CWPS_BP_Field.settings.get_options_for( entity_type );
+					if ( ! data.length ) {
+						me.civicrm_field_add_placeholder();
+						return;
+					}
+
+					// Repopulate the options.
+					placeholder = CWPS_BP_Field.settings.get_localisation( 'placeholder' );
+					new_options.push( new Option( placeholder, '', false, false ) );
+					for ( group of data ) {
+						optgroup = document.createElement( 'optgroup' );
+						optgroup.label = group.label;
+						options = group.options;
+						for ( option of options ) {
+							optgroup.appendChild( new Option( option.label, option.value, false, false ) );
+						}
+						new_options.push( optgroup );
+					}
+					$('#cwps_civicrm_field').append( new_options );
+
+					// Enable CiviCRM Field select.
+					$('#cwps_civicrm_field').prop( 'disabled', false );
+
+					return;
+
 				}
 
 			});
@@ -260,7 +395,8 @@ var CWPS_BP_Field = CWPS_BP_Field || {};
 			 */
 			$('#cwps_civicrm_contact_type, #cwps_civicrm_contact_subtype').on( 'change', function() {
 
-				var contact_type, contact_subtype, new_options = [], field_type, placeholder;
+				var contact_type, contact_subtype, group, data, new_options = [],
+					optgroup, options, placeholder;
 
 				// Get both values.
 				contact_type = $('#cwps_civicrm_contact_type').val();
@@ -284,7 +420,6 @@ var CWPS_BP_Field = CWPS_BP_Field || {};
 				if ( contact_subtype ) {
 					contact_type_id = contact_subtype;
 				}
-				console.log( 'contact_type_id', contact_type_id );
 
 				// Get Options for this of Contact Type.
 				data = CWPS_BP_Field.settings.get_options_for_contact_type( contact_type_id );
@@ -321,7 +456,9 @@ var CWPS_BP_Field = CWPS_BP_Field || {};
 		 */
 		this.reset = function() {
 
-			// Clear Contact selects.
+			// Clear all selects.
+			$('#cwps_civicrm_location_type').val( '' );
+			$('#cwps_civicrm_phone_type').val( '' );
 			$('#cwps_civicrm_contact_type').val( '' );
 			$('#cwps_civicrm_contact_subtype').val( '' );
 
@@ -333,7 +470,7 @@ var CWPS_BP_Field = CWPS_BP_Field || {};
 			$('#cwps_civicrm_field').prop( 'disabled', true );
 
 			// Hide the reminder box.
-			$( '.cwps-reminder' ).hide();
+			$('.cwps-reminder').hide();
 
 		};
 

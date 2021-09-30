@@ -68,35 +68,98 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 	public $custom_field;
 
 	/**
-	 * Settings Field Top Level Contact Type name.
-	 *
-	 * Single word, no spaces. Underscores allowed.
+	 * CiviCRM Address object.
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var string $contact_type_id The Settings Field Top Level Contact Type ID.
+	 * @var object $address The CiviCRM Address object.
+	 */
+	public $address;
+
+	/**
+	 * CiviCRM Phone object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $phone The CiviCRM Phone object.
+	 */
+	public $phone;
+
+	/**
+	 * Settings Field meta key.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var array $entity_types The array of Settings Field Entity Types.
+	 */
+	public $meta_key = 'cwps_mapping';
+
+	/**
+	 * Settings Field Entity Types array.
+	 *
+	 * The keys in this array correspond directly to those used in CiviCRM and
+	 * are called "class names" because they are used to construct actual class
+	 * names to call their methods as well as being the "object" of API calls.
+	 *
+	 * Populated in constructor to allow translation of labels.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var array $entity_types The array of Settings Field Entity Types.
+	 */
+	public $entity_types = [];
+
+	/**
+	 * Entity Type Settings Field name.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var string $entity_type The Entity Type Settings Field name.
+	 */
+	public $entity_type = 'cwps_civicrm_entity_type';
+
+	/**
+	 * Location Type Settings Field name.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var string $location_type_id The Location Type Settings Field name.
+	 */
+	public $location_type_id = 'cwps_civicrm_location_type';
+
+	/**
+	 * Phone Type Settings Field name.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var string $location_type_id The Phone Type Settings Field name.
+	 */
+	public $phone_type_id = 'cwps_civicrm_phone_type';
+
+	/**
+	 * Top Level Contact Type Settings Field name.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var string $contact_type_id The Top Level Contact Type Settings Field name.
 	 */
 	public $contact_type_id = 'cwps_civicrm_contact_type';
 
 	/**
-	 * Settings Field Contact Sub-type ID.
-	 *
-	 * Single word, no spaces. Underscores allowed.
+	 * Contact Sub-type Settings Field name.
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var string $contact_subtype_id The Settings Field Contact Sub-type ID.
+	 * @var string $contact_subtype_id The Contact Sub-type Settings Field name.
 	 */
 	public $contact_subtype_id = 'cwps_civicrm_contact_subtype';
 
 	/**
-	 * Settings Field value name.
-	 *
-	 * Single word, no spaces. Underscores allowed.
+	 * CiviCRM Field Settings Field name.
 	 *
 	 * @since 0.5
 	 * @access public
-	 * @var string $name The Settings Field name.
+	 * @var string $name The CiviCRM Field Settings Field name.
 	 */
 	public $name = 'cwps_civicrm_field';
 
@@ -115,6 +178,13 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 		$this->plugin = $bp_loader->plugin;
 		$this->bp_loader = $bp_loader;
 		$this->civicrm = $bp_loader->plugin->civicrm;
+
+		// Build Entity Type labels and enable translation.
+		$this->entity_types = [
+			'Contact' => __( 'Contact', 'civicrm-wp-profile-sync' ),
+			'Address' => __( 'Address', 'civicrm-wp-profile-sync' ),
+			'Phone' => __( 'Phone', 'civicrm-wp-profile-sync' ),
+		];
 
 		// Init when the CiviCRM object is loaded.
 		add_action( 'cwps/buddypress/loaded', [ $this, 'initialise' ] );
@@ -160,6 +230,8 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 		// Include class files.
 		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-contact-field.php';
 		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-custom-field.php';
+		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-address.php';
+		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-phone.php';
 
 	}
 
@@ -175,6 +247,8 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 		// Init objects.
 		$this->contact_field = new CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field( $this );
 		$this->custom_field = new CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field( $this );
+		$this->address = new CiviCRM_Profile_Sync_BP_CiviCRM_Address( $this );
+		$this->phone = new CiviCRM_Profile_Sync_BP_CiviCRM_Phone( $this );
 
 	}
 
@@ -194,7 +268,6 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 
 		// Filter the xProfile Field options when displaying the Field.
 		add_action( 'bp_xprofile_field_get_children', [ $this, 'get_children' ], 10, 3 );
-		//add_action( 'xprofile_field_after_save', [ $this, 'after_save' ], 10, 2 );
 
 		// BuddyPress uses the "name/label" as the "value" when saving. Needs to be the "ID" instead.
 		add_filter( 'bp_get_the_profile_field_options_checkbox', [ $this, 'options_checkbox' ], 10, 5 );
@@ -215,7 +288,6 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 
 		// Modify the xProfile Field when it is saved.
 		add_action( 'xprofile_field_options_before_save', [ $this, 'options_before_save' ], 10, 2 );
-		//add_action( 'xprofile_field_default_before_save', [ $this, 'default_before_save' ], 10, 2 );
 
 		// Capture our metadata when the xProfile Field when it is saved.
 		add_action( 'xprofile_fields_saved_field', [ $this, 'saved_field' ], 10 );
@@ -322,6 +394,7 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 		$contact = $this->plugin->civicrm->contact->update( $contact_data );
 
 		// Add our data to the params.
+		$args['field_data'] = $this->civicrm_ref;
 		$args['contact_id'] = $contact_data['id'];
 		$args['contact'] = $contact;
 
@@ -330,9 +403,8 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 		 *
 		 * Used internally by:
 		 *
-		 * - Phone
-		 * - Instant Messenger
-		 * - Address
+		 * - BuddyPress Address
+		 * - BuddyPress Phone
 		 *
 		 * @since 0.5
 		 *
@@ -378,8 +450,13 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 		foreach ( $field_data as $data ) {
 
 			// Get metadata for this xProfile Field.
-			$args = $this->get_metadata_all( $data['field_id'] );
+			$args = $data['meta'];
 			if ( empty( $args ) ) {
+				continue;
+			}
+
+			// Skip if it's not a "Contact" xProfile Field.
+			if ( empty( $args['entity_type'] ) || $args['entity_type'] !== 'Contact' ) {
 				continue;
 			}
 
@@ -400,13 +477,6 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 
 					// The Contact Field code is the setting.
 					$code = $contact_field_name;
-
-					/*
-					// Skip if it's a Field that requires special handling.
-					if ( in_array( $code, $fields_handled ) ) {
-						continue;
-					}
-					*/
 
 				}
 
@@ -586,28 +656,6 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 		$value = convert_chars( $value );
 		$value = wpautop( $value );
 		$value = force_balance_tags( $value );
-
-		// --<
-		return $value;
-
-	}
-
-
-
-	// -------------------------------------------------------------------------
-
-
-
-	/**
-	 * Filters the field data value for a specific field for the user.
-	 *
-	 * @since 0.5
-	 *
-	 * @param string $value The value saved for the Field.
-	 * @param integer $field_id The ID of the Field being displayed.
-	 * @param integer $user_id The ID of the User being displayed.
-	 */
-	public function data_get( $value, $field_id, $user_id ) {
 
 		// --<
 		return $value;
@@ -883,7 +931,8 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 			$this->civicrm_ref[] = [
 				'field_id' => $field->id,
 				'field_type' => $field->type,
-				'value' => $value
+				'value' => $value,
+				'meta' => $args,
 			];
 			return $value;
 		}
@@ -913,6 +962,7 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 			'field_id' => $field->id,
 			'field_type' => $field->type,
 			'value' => $value,
+			'meta' => $args,
 		];
 
 		// Now maybe overwrite the return.
@@ -1039,21 +1089,54 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 		], true ) );
 		*/
 
-		// Extract the Contact Type ID from our metabox.
-		$contact_type_id = '';
-		if ( isset( $_POST[$this->contact_type_id] ) && $_POST[$this->contact_type_id] ) {
-			$contact_type_id = wp_unslash( $_POST[$this->contact_type_id] );
+		// Extract the Entity Type from our metabox.
+		$entity_type = '';
+		if ( isset( $_POST[$this->entity_type] ) && $_POST[$this->entity_type] ) {
+			$entity_type = wp_unslash( $_POST[$this->entity_type] );
 		}
 
-		// Bail if we don't have a Contact Type.
-		if ( empty( $contact_type_id ) ) {
+		// Bail if we don't have an Entity Type.
+		if ( empty( $entity_type ) ) {
 			return $post_option;
 		}
 
-		// Extract the Contact Subtype ID from our metabox.
-		$contact_subtype_id = '';
-		if ( isset( $_POST[$this->contact_subtype_id] ) && $_POST[$this->contact_subtype_id] ) {
-			$contact_subtype_id = wp_unslash( $_POST[$this->contact_subtype_id] );
+		// Get data for the "Address" and "Phone" Entity Types.
+		if ( $entity_type === 'Address' || $entity_type === 'Phone' ) {
+
+			// Extract the Location Type ID from our metabox.
+			$location_type_id = '';
+			if ( isset( $_POST[$this->location_type_id] ) && $_POST[$this->location_type_id] ) {
+				$location_type_id = wp_unslash( $_POST[$this->location_type_id] );
+			}
+
+			// Build Entity data.
+			$entity_data = [
+				'location_type_id' => $location_type_id,
+			];
+
+		}
+
+		// Get data for the "Contact" Entity Type.
+		if ( $entity_type === 'Contact' ) {
+
+			// Extract the Contact Type ID from our metabox.
+			$contact_type_id = '';
+			if ( isset( $_POST[$this->contact_type_id] ) && $_POST[$this->contact_type_id] ) {
+				$contact_type_id = wp_unslash( $_POST[$this->contact_type_id] );
+			}
+
+			// Extract the Contact Subtype ID from our metabox.
+			$contact_subtype_id = '';
+			if ( isset( $_POST[$this->contact_subtype_id] ) && $_POST[$this->contact_subtype_id] ) {
+				$contact_subtype_id = wp_unslash( $_POST[$this->contact_subtype_id] );
+			}
+
+			// Build Entity data.
+			$entity_data = [
+				'contact_type_id' => $contact_type_id,
+				'contact_subtype_id' => $contact_subtype_id,
+			];
+
 		}
 
 		// Extract the value from our metabox.
@@ -1067,8 +1150,8 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 		$trace = $e->getTraceAsString();
 		error_log( print_r( [
 			'method' => __METHOD__,
-			'contact_type_id' => $contact_type_id,
-			'contact_subtype_id' => $contact_subtype_id,
+			'entity_type' => $entity_type,
+			'entity_data' => $entity_data,
 			'value' => $value,
 			//'backtrace' => $trace,
 		], true ) );
@@ -1081,8 +1164,8 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 
 		// Let's make an array of the args.
 		$args = [
-			'contact_type_id' => $contact_type_id,
-			'contact_subtype_id' => $contact_subtype_id,
+			'entity_type' => $entity_type,
+			'entity_data' => $entity_data,
 			'value' => $value,
 		];
 
@@ -1138,16 +1221,71 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 	 */
 	public function saved_field( $field ) {
 
-		// Extract the Contact Type ID from our metabox.
-		$contact_type_id = '';
-		if ( isset( $_POST[$this->contact_type_id] ) && $_POST[$this->contact_type_id] ) {
-			$contact_type_id = wp_unslash( $_POST[$this->contact_type_id] );
+		// Extract the Entity Type from our metabox.
+		$entity_type = '';
+		if ( isset( $_POST[$this->entity_type] ) && $_POST[$this->entity_type] ) {
+			$entity_type = wp_unslash( $_POST[$this->entity_type] );
 		}
 
-		// Extract the Contact Subtype ID from our metabox.
-		$contact_subtype_id = '';
-		if ( isset( $_POST[$this->contact_subtype_id] ) && $_POST[$this->contact_subtype_id] ) {
-			$contact_subtype_id = wp_unslash( $_POST[$this->contact_subtype_id] );
+		// Bail if we don't have an Entity Type.
+		if ( empty( $entity_type ) ) {
+			return;
+		}
+
+		// Init Entity data.
+		$entity_data = [];
+
+		// Get data for the "Contact" Entity Type.
+		if ( $entity_type === 'Contact' ) {
+
+			// Extract the Contact Type ID from our metabox.
+			$contact_type_id = '';
+			if ( isset( $_POST[$this->contact_type_id] ) && $_POST[$this->contact_type_id] ) {
+				$contact_type_id = wp_unslash( $_POST[$this->contact_type_id] );
+			}
+
+			// Extract the Contact Subtype ID from our metabox.
+			$contact_subtype_id = '';
+			if ( isset( $_POST[$this->contact_subtype_id] ) && $_POST[$this->contact_subtype_id] ) {
+				$contact_subtype_id = wp_unslash( $_POST[$this->contact_subtype_id] );
+			}
+
+			// Build Entity data.
+			$entity_data = [
+				'contact_type_id' => $contact_type_id,
+				'contact_subtype_id' => $contact_subtype_id,
+			];
+
+		}
+
+		// Get data for the "Address" and "Phone" Entity Types.
+		if ( $entity_type === 'Address' || $entity_type === 'Phone' ) {
+
+			// Extract the Location Type ID from our metabox.
+			$location_type_id = '';
+			if ( isset( $_POST[$this->location_type_id] ) && $_POST[$this->location_type_id] ) {
+				$location_type_id = wp_unslash( $_POST[$this->location_type_id] );
+			}
+
+			// Build Entity data.
+			$entity_data = [
+				'location_type_id' => $location_type_id,
+			];
+
+			// Get data for the "Phone" Entity Types
+			if ( $entity_type === 'Phone' ) {
+
+				// Extract the Phone Type ID from our metabox.
+				$phone_type_id = '';
+				if ( isset( $_POST[$this->phone_type_id] ) && $_POST[$this->phone_type_id] ) {
+					$phone_type_id = wp_unslash( $_POST[$this->phone_type_id] );
+				}
+
+				// Add to Entity data.
+				$entity_data['phone_type_id'] =  $phone_type_id;
+
+			}
+
 		}
 
 		// Extract the value from our metabox.
@@ -1161,30 +1299,32 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 		$trace = $e->getTraceAsString();
 		error_log( print_r( [
 			'method' => __METHOD__,
-			'field' => $field,
-			//'POST' => $_POST,
-			'contact_type_id' => $contact_type_id,
-			'contact_subtype_id' => $contact_subtype_id,
+			'entity_type' => $entity_type,
+			'entity_data' => $entity_data,
 			'value' => $value,
 			//'backtrace' => $trace,
 		], true ) );
 		*/
 
-		// Save setting(s).
-		bp_xprofile_update_field_meta( $field->id, $this->contact_type_id, $contact_type_id );
-		bp_xprofile_update_field_meta( $field->id, $this->contact_subtype_id, $contact_subtype_id );
-		if ( ! empty( $value ) ) {
-			bp_xprofile_update_field_meta( $field->id, $this->name, $value );
-		} else {
-			bp_xprofile_update_field_meta( $field->id, $this->name, '' );
-		}
-
 		// Bundle our data into an array.
 		$args = [
-			'contact_type_id' => $contact_type_id,
-			'contact_subtype_id' => $contact_subtype_id,
+			'entity_type' => $entity_type,
+			'entity_data' => $entity_data,
 			'value' => $value,
 		];
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'args' => $args,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		// Save setting(s).
+		$this->set_metadata_all( $field, $args );
 
 		/**
 		 * Broadcast our data when a BuddyPress xProfile Field has been saved.
@@ -1214,58 +1354,80 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 	public function metabox_render( $field ) {
 
 		// Get our Field settings.
-		$top_level_type = bp_xprofile_get_meta( $field->id, 'field', $this->contact_type_id );
-		$sub_type = bp_xprofile_get_meta( $field->id, 'field', $this->contact_subtype_id );
-		$civicrm_field = bp_xprofile_get_meta( $field->id, 'field', $this->name );
+		$meta = $this->get_metadata_all( $field );
+		$entity_type = isset( $meta['entity_type'] ) ? $meta['entity_type'] : '';
+		$entity_data = isset( $meta['entity_data'] ) ? $meta['entity_data'] : '';
+		$civicrm_field = isset( $meta['value'] ) ? $meta['value'] : '';
 
 		/*
 		$e = new \Exception();
 		$trace = $e->getTraceAsString();
 		error_log( print_r( [
 			'method' => __METHOD__,
-			'top_level_type' => $top_level_type,
-			'sub_type' => $sub_type,
+			'entity_type' => $entity_type,
+			'entity_data' => $entity_data,
 			'civicrm_field' => $civicrm_field,
 			//'backtrace' => $trace,
 		], true ) );
 		*/
 
-		// Set the lowest-level Contact Type ID that we can.
-		$contact_type_id = 0;
-		if ( ! empty( $top_level_type ) ) {
-			$contact_type_id = $top_level_type;
-			if ( ! empty( $sub_type ) ) {
-				$contact_type_id = $sub_type;
+		// Get data for the "Address" and "Phone" Entity Types.
+		$location_type_id = '';
+		if ( $entity_type === 'Address' || $entity_type === 'Phone' ) {
+			$location_type_id = isset( $entity_data['location_type_id'] ) ? $entity_data['location_type_id'] : '';
+		}
+
+		// Init "Location" array.
+		$locations = [];
+
+		// Add entries for Location Types.
+		$location_types = $this->plugin->civicrm->address->location_types_get();
+		if ( ! empty( $location_types ) ) {
+			foreach ( $location_types as $location ) {
+				$locations[$location['id']] = trim( $location['display_name'] );
 			}
 		}
 
-		/*
-		$e = new \Exception();
-		$trace = $e->getTraceAsString();
-		error_log( print_r( [
-			'method' => __METHOD__,
-			'contact_type_id' => $contact_type_id,
-			//'backtrace' => $trace,
-		], true ) );
-		*/
 
-		// Init arrays.
-		$contact_type_data = [];
+
+		// Get data for the "Phone" Entity Type.
+		$phone_type_id = '';
+		if ( $entity_type === 'Phone' ) {
+			$phone_type_id = isset( $entity_data['phone_type_id'] ) ? $entity_data['phone_type_id'] : '';
+		}
+
+		// Init "Phone Type" array.
+		$phones = [];
+
+		// Add entries for Phone Types.
+		$phone_types = $this->plugin->civicrm->phone->phone_types_get();
+		if ( ! empty( $phone_types ) ) {
+			foreach ( $phone_types as $id => $label ) {
+				$phones[$id] = trim( $label );
+			}
+		}
+
+
+
+		// Get data for the "Contact" Entity.
+		$top_level_type = '';
+		$sub_type = '';
+		if ( $entity_type === 'Contact' ) {
+			$top_level_type = isset( $entity_data['contact_type_id'] ) ? $entity_data['contact_type_id'] : '';
+			$sub_type = isset( $entity_data['contact_subtype_id'] ) ? $entity_data['contact_subtype_id'] : '';
+		}
+
+		// Init Contact arrays.
 		$top_level_types = [];
 		$sub_types = [];
 
 		// Get all Contact Types.
 		$contact_types = $this->plugin->civicrm->contact_type->types_get_nested();
-
-		// If there are some.
 		if ( ! empty( $contact_types ) ) {
 
 			// Add entries for top level Contact Types.
 			foreach ( $contact_types as $contact_type ) {
 				$top_level_types[$contact_type['id']] = $contact_type['label'];
-				if ( $contact_type['id'] == $contact_type_id ) {
-					$contact_type_data = $contact_type;
-				}
 			}
 
 			// Add entries for CiviCRM Contact Sub-types.
@@ -1275,10 +1437,97 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 				}
 				foreach ( $contact_type['children'] as $contact_subtype ) {
 					$sub_types[$contact_type['name']][$contact_subtype['id']] = $contact_subtype['label'];
-					if ( $contact_subtype['id'] == $contact_type_id ) {
-						$contact_type_data = $contact_subtype;
+				}
+			}
+
+		}
+
+
+
+		// Init Entity Type array.
+		$entity_type_data = [];
+
+		// Get data based on Entity.
+		if ( $entity_type === 'Contact' ) {
+
+			// Set the lowest-level Contact Type ID that we can.
+			$contact_type_id = 0;
+			if ( ! empty( $top_level_type ) ) {
+				$contact_type_id = $top_level_type;
+				if ( ! empty( $sub_type ) ) {
+					$contact_type_id = $sub_type;
+				}
+			}
+
+			/*
+			$e = new \Exception();
+			$trace = $e->getTraceAsString();
+			error_log( print_r( [
+				'method' => __METHOD__,
+				'contact_type_id' => $contact_type_id,
+				//'backtrace' => $trace,
+			], true ) );
+			*/
+
+			// If we got some Contact Types.
+			if ( ! empty( $contact_types ) ) {
+
+				// Assign top level Contact Type data.
+				foreach ( $contact_types as $contact_type ) {
+					if ( $contact_type['id'] == $contact_type_id ) {
+						$entity_type_data = $contact_type;
 					}
 				}
+
+				// Maybe override with Contact Sub-type data.
+				foreach ( $contact_types as $contact_type ) {
+					if ( empty( $contact_type['children'] ) ) {
+						continue;
+					}
+					foreach ( $contact_type['children'] as $contact_subtype ) {
+						if ( $contact_subtype['id'] == $contact_type_id ) {
+							$entity_type_data = $contact_subtype;
+						}
+					}
+				}
+
+			}
+
+		}
+
+		// Get data for the "Address" and "Phone" Entity Types.
+		if ( $entity_type === 'Address' || $entity_type === 'Phone' ) {
+
+			// If we got some Location Types.
+			if ( ! empty( $location_types ) ) {
+
+				// Assign Location Type data.
+				foreach ( $location_types as $location ) {
+					if ( $location['id'] == $location_type_id ) {
+						$entity_type_data['location_type'] = $location;
+					}
+				}
+
+			}
+
+		}
+
+		// Get data for the "Phone" Entity Type.
+		if ( $entity_type === 'Phone' ) {
+
+			// If we got some Phone Types.
+			if ( ! empty( $phone_types ) ) {
+
+				// Assign Phone Type data.
+				foreach ( $phone_types as $id => $label ) {
+					if ( $id == $phone_type_id ) {
+						$entity_type_data['phone_type'] = [
+							'id' => $id,
+							'label' => $label,
+						];
+					}
+				}
+
 			}
 
 		}
@@ -1288,8 +1537,19 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 		$trace = $e->getTraceAsString();
 		error_log( print_r( [
 			'method' => __METHOD__,
+			'location_type_id' => $location_type_id,
+			'phone_type_id' => $phone_type_id,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
 			'field->type' => $field->type,
-			'contact_type_data' => $contact_type_data,
+			'entity_type_data' => $entity_type_data,
 			//'backtrace' => $trace,
 		], true ) );
 		*/
@@ -1301,9 +1561,10 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 		 *
 		 * @param array The empty default Setting Field choices array.
 		 * @param string $field_type The BuddyPress xProfile Field Type.
-		 * @param array $contact_type_data The array of Contact Type data.
+		 * @param string $entity_type The CiviCRM Entity Type.
+		 * @param array $entity_type_data The array of Entity Type data.
 		 */
-		$choices = apply_filters( 'cwps/bp/field/query_setting_choices', [], $field->type, $contact_type_data );
+		$choices = apply_filters( 'cwps/bp/field/query_setting_choices', [], $field->type, $entity_type, $entity_type_data );
 
 		/*
 		$e = new \Exception();
@@ -1346,8 +1607,10 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 			// Get all Contact Types.
 			$contact_types = $this->plugin->civicrm->contact_type->types_get_all();
 
-			// Get the Field mappings for all BuddyPress Field Types and Contact Types.
+			// Get the Field mappings for all BuddyPress Field Types.
 			foreach ( bp_xprofile_get_field_types() as $field_type => $field_type_class ) {
+
+				// Get the Field mappings for all Contact Types.
 				foreach ( $contact_types as $contact_type ) {
 
 					/*
@@ -1369,9 +1632,10 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 					 *
 					 * @param array The empty default Setting Field choices array.
 					 * @param string $field_type The BuddyPress xProfile Field Type.
+					 * @param string $entity_type The CiviCRM Entity Type.
 					 * @param array $contact_type The array of Contact Type data.
 					 */
-					$choices = apply_filters( 'cwps/bp/field/query_setting_choices', [], $field_type, $contact_type );
+					$choices = apply_filters( 'cwps/bp/field/query_setting_choices', [], $field_type, 'Contact', $contact_type );
 
 					// Skip if we get no choices.
 					if ( empty( $choices ) ) {
@@ -1388,7 +1652,7 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 					], true ) );
 					*/
 
-					// Add to options.
+					// Build data for options.
 					$data = [];
 					foreach ( $choices as $optgroup => $choice ) {
 						$opts = [];
@@ -1404,9 +1668,70 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 						];
 					}
 
+					// Add data to options.
 					$options[$field_type][$contact_type['id']] = $data;
 
 				}
+
+				// Get the Field mappings for Entity Types that share "Location Type".
+				$shared_entities = [ 'Address', 'Phone' ];
+				foreach ( $shared_entities as $entity_type ) {
+
+					/**
+					 * Request the choices for a Setting Field from Entity classes.
+					 *
+					 * @since 0.5
+					 *
+					 * @param array The empty default Setting Field choices array.
+					 * @param string $field_type The BuddyPress xProfile Field Type.
+					 * @param string $entity_type The CiviCRM Entity Type.
+					 * @param array Empty because data is not needed for "Address".
+					 */
+					$choices = apply_filters( 'cwps/bp/field/query_setting_choices', [], $field_type, $entity_type, [] );
+
+					// Skip if we get no choices.
+					if ( empty( $choices ) ) {
+						continue;
+					}
+
+					/*
+					$e = new \Exception();
+					$trace = $e->getTraceAsString();
+					error_log( print_r( [
+						'method' => __METHOD__,
+						'entity_type' => $entity_type,
+						'choices' => $choices,
+						//'backtrace' => $trace,
+					], true ) );
+					*/
+
+					// Build data for options.
+					$data = [];
+					foreach ( $choices as $optgroup => $choice ) {
+						$opts = [];
+						foreach ( $choice as $value => $label ) {
+							$opts[] = [
+								'value' => $value,
+								'label' => $label,
+							];
+						}
+						$data[] = [
+							'label' => $optgroup,
+							'options' => $opts,
+						];
+					}
+
+					// Add data to options.
+					$options[$field_type][$entity_type] = $data;
+
+				}
+
+			}
+
+			// Is this the default "Name" Field?
+			$is_fullname_field = false;
+			if ( ! empty( $_GET['field_id'] ) && (int) $_GET['field_id'] === (int) bp_xprofile_fullname_field_id() ) {
+				$is_fullname_field = true;
 			}
 
 			// Build data array.
@@ -1416,6 +1741,7 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 				],
 				'settings' => [
 					'options' => $options,
+					'fullname_field' => $is_fullname_field,
 				],
 			];
 
@@ -1424,7 +1750,9 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 			$trace = $e->getTraceAsString();
 			error_log( print_r( [
 				'method' => __METHOD__,
-				'options[textbox]' => $options['textbox'],
+				//'fullname_field' => $is_fullname_field ? 'y' : 'n',
+				'options' => $options,
+				//'options[textbox]' => $options['textbox'],
 				//'options[datebox]' => $options['datebox'],
 				//'backtrace' => $trace,
 			], true ) );
@@ -1457,6 +1785,9 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 	 */
 	public function get_metadata_all( $field ) {
 
+		// Init return.
+		$data = [];
+
 		// Grab the Field ID.
 		if ( is_object( $field ) ) {
 			$field_id = $field->id;
@@ -1471,29 +1802,45 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 		}
 
 		// Grab the metadata.
-		$contact_type_id = bp_xprofile_get_meta( $field_id, 'field', $this->contact_type_id );
-		$contact_subtype_id = bp_xprofile_get_meta( $field_id, 'field', $this->contact_subtype_id );
-		$value = bp_xprofile_get_meta( $field_id, 'field', $this->name );
+		$meta = bp_xprofile_get_meta( $field_id, 'field', $this->meta_key );
+		if ( empty( $meta ) ) {
+			return $data;
+		}
 
-		// Build data array.
-		$data = [];
-		if ( ! empty( $contact_type_id ) ) {
-			$data['contact_type_id'] = $contact_type_id;
-		}
-		if ( ! empty( $contact_subtype_id ) ) {
-			$data['contact_subtype_id'] = $contact_subtype_id;
-		}
-		if ( ! empty( $value ) ) {
-			$data['value'] = $value;
-		}
+		// Grab the data. Unserialise?
+		$data = $meta;
 
 		// Maybe add to pseudo-cache.
 		if ( ! isset( $pseudocache[$field_id] ) ) {
-			$pseudocache[$field_id] = $data;
+			//$pseudocache[$field_id] = $data;
 		}
 
 		// --<
 		return $data;
+
+	}
+
+
+
+	/**
+	 * Sets all of our metadata for a BuddyPress xProfile Field.
+	 *
+	 * @since 0.5
+	 *
+	 * @param object|integer $field The xProfile Field object or Field ID.
+	 * @param array $data The array of our Field metadata.
+	 */
+	public function set_metadata_all( $field, $data ) {
+
+		// Grab the Field ID.
+		if ( is_object( $field ) ) {
+			$field_id = $field->id;
+		} else {
+			$field_id = $field;
+		}
+
+		// Set the metadata.
+		bp_xprofile_update_field_meta( $field_id, $this->meta_key, $data );
 
 	}
 
@@ -1506,8 +1853,12 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 	 *
 	 * @param object|integer $field The xProfile Field object or Field ID.
 	 * @param string $setting The xProfile Field setting.
+	 * @return mixed $value The value if the setting or false if not present.
 	 */
 	public function get_metadata( $field, $setting = 'value' ) {
+
+		// Init return.
+		$value = false;
 
 		// Grab the Field ID.
 		if ( is_object( $field ) ) {
@@ -1516,20 +1867,53 @@ class CiviCRM_Profile_Sync_BP_xProfile_Field {
 			$field_id = $field;
 		}
 
-		switch ( $setting ) {
-			case 'value' :
-				$key = $this->name;
-				break;
-			case 'contact_type_id' :
-				$key = $this->contact_type_id;
-				break;
-			case 'contact_subtype_id' :
-				$key = $this->contact_subtype_id;
-				break;
+		// Try and get the metadata.
+		$meta = $this->get_metadata_all( $field );
+		if ( empty( $meta ) ) {
+			return $value;
+		}
+
+		// Try and get the setting.
+		if ( array_key_exists( $setting, $meta ) ) {
+			$value = $meta[ $setting ];
 		}
 
 		// --<
-		return bp_xprofile_get_meta( $field_id, 'field', $key );
+		return $value;
+
+	}
+
+
+
+	/**
+	 * Sets an item of our metadata for a BuddyPress xProfile Field.
+	 *
+	 * @since 0.5
+	 *
+	 * @param object|integer $field The xProfile Field object or Field ID.
+	 * @param string $setting The xProfile Field setting.
+	 * @param mixed $value The value of the xProfile Field setting.
+	 */
+	public function set_metadata( $field, $setting, $value ) {
+
+		// Grab the Field ID.
+		if ( is_object( $field ) ) {
+			$field_id = $field->id;
+		} else {
+			$field_id = $field;
+		}
+
+		// Try and get the metadata.
+		$meta = $this->get_metadata_all( $field );
+		if ( empty( $meta ) ) {
+			$meta = [];
+		}
+
+		// Set the setting.
+		$meta[ $setting ] = $value;
+
+		// Resave.
+		$this->set_metadata_all( $field, $meta );
 
 	}
 

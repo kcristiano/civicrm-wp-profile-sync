@@ -183,7 +183,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_State_Field extends acf_field 
 	public function render_field_settings( $field ) {
 
 		// Get Locations.
-		$location_types = $this->civicrm->address->location_types_get();
+		$location_types = $this->plugin->civicrm->address->location_types_get();
 
 		// Init choices.
 		$choices = [];
@@ -341,7 +341,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_State_Field extends acf_field 
 		if ( $contact_id !== false ) {
 
 			// Get this Contact's Addresses.
-			$addresses = $this->civicrm->address->addresses_get_by_contact_id( $contact_id );
+			$addresses = $this->plugin->civicrm->address->addresses_get_by_contact_id( $contact_id );
 
 			// Init State/Province ID.
 			$state_id = false;
@@ -372,7 +372,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_State_Field extends acf_field 
 
 			// Overwrite if we get a value.
 			if ( $state_id !== false ) {
-				$state = $this->civicrm->address->state_province_get_by_id( $state_id );
+				$state = $this->plugin->civicrm->address->state_province_get_by_id( $state_id );
 				$value = $state['name'];
 			}
 

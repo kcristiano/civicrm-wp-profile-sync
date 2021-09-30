@@ -703,7 +703,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Address_State extends acf_field {
 		);
 
 		// Get the States keyed by Country ID.
-		$states = $this->civicrm->address->states_get_for_countries();
+		$states = $this->plugin->civicrm->address->states_get_for_countries();
 
 		// Build data array.
 		$vars = [

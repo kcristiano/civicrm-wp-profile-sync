@@ -1182,55 +1182,6 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Instant_Messenger extends CiviCRM_Profile
 
 
 	/**
-	 * Get the Instant Messenger Locations that are defined in CiviCRM.
-	 *
-	 * @since 0.4
-	 *
-	 * @return array $location_types The array of possible Instant Messenger Locations.
-	 */
-	public function location_types_get() {
-
-		// Init return.
-		$location_types = [];
-
-		// Try and init CiviCRM.
-		if ( ! $this->civicrm->is_initialised() ) {
-			return $location_types;
-		}
-
-		// Params to get all Location Types.
-		$params = [
-			'version' => 3,
-			'sequential' => 1,
-			'options' => [
-				'limit' => 0,
-			],
-		];
-
-		// Call the CiviCRM API.
-		$result = civicrm_api( 'LocationType', 'get', $params );
-
-		// Bail if there's an error.
-		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
-			return $location_types;
-		}
-
-		// Bail if there are no results.
-		if ( empty( $result['values'] ) ) {
-			return $location_types;
-		}
-
-		// Assign results to return.
-		$location_types = $result['values'];
-
-		// --<
-		return $location_types;
-
-	}
-
-
-
-	/**
 	 * Get the Instant Messenger Locations that can be mapped to an ACF Field.
 	 *
 	 * @since 0.4
@@ -1251,8 +1202,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Instant_Messenger extends CiviCRM_Profile
 			return $location_types;
 		}
 
-		// Get Location Types.
-		$location_types = $this->location_types_get();
+		// Instant Messenger Locations are standard Location Types.
+		$location_types = $this->plugin->civicrm->address->location_types_get();
 
 		/**
 		 * Filter the retrieved Location Types.

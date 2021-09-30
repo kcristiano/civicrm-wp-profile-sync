@@ -1,0 +1,1289 @@
+<?php
+/**
+ * CiviCRM Address Class.
+ *
+ * Handles CiviCRM Address functionality.
+ *
+ * @package CiviCRM_WP_Profile_Sync
+ * @since 0.5
+ */
+
+// Exit if accessed directly.
+defined( 'ABSPATH' ) || exit;
+
+
+
+/**
+ * CiviCRM Profile Sync CiviCRM Address Class.
+ *
+ * A class that encapsulates CiviCRM Address functionality.
+ *
+ * @since 0.5
+ */
+class CiviCRM_WP_Profile_Sync_CiviCRM_Address {
+
+	/**
+	 * Plugin object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $plugin The plugin object.
+	 */
+	public $plugin;
+
+	/**
+	 * Parent (calling) object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $civicrm The parent object.
+	 */
+	public $civicrm;
+
+
+
+	/**
+	 * Constructor.
+	 *
+	 * @since 0.5
+	 *
+	 * @param object $parent The parent object reference.
+	 */
+	public function __construct( $parent ) {
+
+		// Store references to objects.
+		$this->plugin = $parent->plugin;
+		$this->civicrm = $parent;
+
+		// Init when the CiviCRM object is loaded.
+		add_action( 'cwps/civicrm/loaded', [ $this, 'initialise' ] );
+
+	}
+
+
+
+	/**
+	 * Initialise this object.
+	 *
+	 * @since 0.5
+	 */
+	public function initialise() {
+
+		// Register hooks.
+		$this->register_hooks();
+
+	}
+
+
+
+	/**
+	 * Register hooks.
+	 *
+	 * @since 0.5
+	 */
+	public function register_hooks() {
+
+	}
+
+
+
+	// -------------------------------------------------------------------------
+
+
+
+	/**
+	 * Get a Country by its numeric ID.
+	 *
+	 * @since 0.4
+	 * @since 0.5 Moved to this class.
+	 *
+	 * @param integer $country_id The numeric ID of the Country.
+	 * @return array $country The array of Country data.
+	 */
+	public function country_get_by_id( $country_id ) {
+
+		// Init return.
+		$country = [];
+
+		// Try and init CiviCRM.
+		if ( ! $this->civicrm->is_initialised() ) {
+			return $country;
+		}
+
+		// Params to get the Address Type.
+		$params = [
+			'version' => 3,
+			'sequential' => 1,
+			'id' => $country_id,
+		];
+
+		// Call the CiviCRM API.
+		$result = civicrm_api( 'Country', 'get', $params );
+
+		// Bail if there's an error.
+		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+			return $country;
+		}
+
+		// Bail if there are no results.
+		if ( empty( $result['values'] ) ) {
+			return $country;
+		}
+
+ 		// The result set should contain only one item.
+		$country = array_pop( $result['values'] );
+
+		// --<
+		return $country;
+
+	}
+
+
+
+	/**
+	 * Get a Country by its "short name".
+	 *
+	 * @since 0.4
+	 * @since 0.5 Moved to this class.
+	 *
+	 * @param string $country_short The "short name" of the Country.
+	 * @return array $country The array of Country data, empty on failure.
+	 */
+	public function country_get_by_short( $country_short ) {
+
+		// Init return.
+		$country = [];
+
+		// Try and init CiviCRM.
+		if ( ! $this->civicrm->is_initialised() ) {
+			return $country;
+		}
+
+		// Params to get the Address Type.
+		$params = [
+			'version' => 3,
+			'sequential' => 1,
+			'iso_code' => $country_short,
+		];
+
+		// Call the CiviCRM API.
+		$result = civicrm_api( 'Country', 'get', $params );
+
+		// Bail if there's an error.
+		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+			return $country;
+		}
+
+		// Bail if there are no results.
+		if ( empty( $result['values'] ) ) {
+			return $country;
+		}
+
+ 		// The result set should contain only one item.
+		$country = array_pop( $result['values'] );
+
+		// --<
+		return $country;
+
+	}
+
+
+
+	/**
+	 * Get all State/Provinces as an array keyed by State ID.
+	 *
+	 * @since 0.4
+	 * @since 0.5 Moved to this class.
+	 *
+	 * @return array $state_provinces The array of State/Province data.
+	 */
+	public function state_provinces_get() {
+
+		// Init return.
+		$state_provinces = [];
+
+		// Try and init CiviCRM.
+		if ( ! $this->civicrm->is_initialised() ) {
+			return $state_provinces;
+		}
+
+		// Use CiviCRM Core method.
+		$state_provinces = CRM_Core_PseudoConstant::stateProvince();
+
+		// --<
+		return $state_provinces;
+
+	}
+
+
+
+	/**
+	 * Get all State/Provinces as an array keyed by Country ID.
+	 *
+	 * @since 0.4
+	 * @since 0.5 Moved to this class.
+	 *
+	 * @return array $state_provinces The array of State/Province data.
+	 */
+	public function states_get_for_countries() {
+
+		// Init return.
+		$state_provinces = [];
+
+		// Try and init CiviCRM.
+		if ( ! $this->civicrm->is_initialised() ) {
+			return $state_provinces;
+		}
+
+		// Params to get the Address Type.
+		$params = [
+			'version' => 3,
+			'sequential' => 1,
+			'options' => [
+				'limit' => 0,
+			],
+		];
+
+		// Call the CiviCRM API.
+		$result = civicrm_api( 'StateProvince', 'get', $params );
+
+		// Bail if there's an error.
+		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+			return $state_provinces;
+		}
+
+		// Bail if there are no results.
+		if ( empty( $result['values'] ) ) {
+			return $state_provinces;
+		}
+
+		// Build the array.
+		foreach ( $result['values'] as $value ) {
+			$state_provinces[ $value['country_id'] ][] = [
+				'id' => $value['id'],
+				'text' => $value['name'],
+			];
+		}
+
+		// --<
+		return $state_provinces;
+
+	}
+
+
+
+	/**
+	 * Get a State/Province by its numeric ID.
+	 *
+	 * @since 0.4
+	 * @since 0.5 Moved to this class.
+	 *
+	 * @param integer $state_province_id The numeric ID of the State/Province.
+	 * @return array $state_province The array of State/Province data.
+	 */
+	public function state_province_get_by_id( $state_province_id ) {
+
+		// Init return.
+		$state_province = [];
+
+		// Try and init CiviCRM.
+		if ( ! $this->civicrm->is_initialised() ) {
+			return $state_province;
+		}
+
+		// Params to get the State/Province.
+		$params = [
+			'version' => 3,
+			'sequential' => 1,
+			'state_province_id' => $state_province_id,
+		];
+
+		// Call the CiviCRM API.
+		$result = civicrm_api( 'StateProvince', 'get', $params );
+
+		// Bail if there's an error.
+		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+			return $state_province;
+		}
+
+		// Bail if there are no results.
+		if ( empty( $result['values'] ) ) {
+			return $state_province;
+		}
+
+ 		// The result set should contain only one item.
+		$state_province = array_pop( $result['values'] );
+
+		// --<
+		return $state_province;
+
+	}
+
+
+
+	/**
+	 * Get a State/Province by its "short name".
+	 *
+	 * @since 0.4
+	 * @since 0.5 Moved to this class.
+	 *
+	 * @param string $abbreviation The short name of the State/Province.
+	 * @return array $state_province The array of State/Province data.
+	 */
+	public function state_province_get_by_short( $abbreviation ) {
+
+		// Init return.
+		$state_province = [];
+
+		// Try and init CiviCRM.
+		if ( ! $this->civicrm->is_initialised() ) {
+			return $state_province;
+		}
+
+		// Params to get the State/Province.
+		$params = [
+			'version' => 3,
+			'sequential' => 1,
+			'abbreviation' => $abbreviation,
+		];
+
+		// Call the CiviCRM API.
+		$result = civicrm_api( 'StateProvince', 'get', $params );
+
+		// Bail if there's an error.
+		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+			return $state_province;
+		}
+
+		// Bail if there are no results.
+		if ( empty( $result['values'] ) ) {
+			return $state_province;
+		}
+
+ 		// The result set should contain only one item.
+		$state_province = array_pop( $result['values'] );
+
+		// --<
+		return $state_province;
+
+	}
+
+
+
+	/**
+	 * Get all Counties keyed by County ID.
+	 *
+	 * @since 0.4
+	 * @since 0.5 Moved to this class.
+	 *
+	 * @return array $counties The array of Counties data.
+	 */
+	public function counties_get() {
+
+		// Only do this once.
+		static $counties;
+		if ( isset( $counties ) ) {
+			return $counties;
+		}
+
+		// Try and init CiviCRM.
+		if ( ! $this->civicrm->is_initialised() ) {
+			return [];
+		}
+
+		// Init return.
+		$counties = [];
+
+		// Build the query.
+		$query = 'SELECT name, id, state_province_id, abbreviation FROM civicrm_county';
+		$dao = CRM_Core_DAO::executeQuery( $query );
+
+		// Build the array.
+		while ( $dao->fetch() ) {
+			$counties[$dao->id] = [
+				'name' => $dao->name,
+				'state_province_id' => $dao->state_province_id,
+				'abbreviation' => $dao->abbreviation,
+			];
+		}
+
+		// --<
+		return $counties;
+
+	}
+
+
+
+	/**
+	 * Get all Counties keyed by State ID.
+	 *
+	 * This is formatted for Select2.
+	 *
+	 * @since 0.4
+	 * @since 0.5 Moved to this class.
+	 *
+	 * @return array $counties The array of Counties data.
+	 */
+	public function counties_get_for_states() {
+
+		// Only do this once.
+		static $counties;
+		if ( isset( $counties ) ) {
+			return $counties;
+		}
+
+		// Try and init CiviCRM.
+		if ( ! $this->civicrm->is_initialised() ) {
+			return [];
+		}
+
+		// Init return.
+		$counties = [];
+
+		// Build the query.
+		$query = 'SELECT name, id, state_province_id, abbreviation FROM civicrm_county';
+		$dao = CRM_Core_DAO::executeQuery( $query );
+
+		// Build the array.
+		while ( $dao->fetch() ) {
+			$counties[$dao->state_province_id][] = [
+				'id' => $dao->id,
+				'text' => $dao->name,
+			];
+		}
+
+		// --<
+		return $counties;
+
+	}
+
+
+
+	/**
+	 * Get the State ID for a given County ID.
+	 *
+	 * @since 0.4
+	 * @since 0.5 Moved to this class.
+	 *
+	 * @param integer $county_id The numeric ID of the CiviCRM County.
+	 * @return integer|bool $state_id The numeric ID of the CiviCRM State/Province, or false on failure.
+	 */
+	public function state_get_for_county( $county_id ) {
+
+		// Only do this once per Field Type and filter.
+		static $pseudocache;
+		if ( isset( $pseudocache[$county_id] ) ) {
+			return $pseudocache[$county_id];
+		}
+
+		// Init return.
+		$state_id = false;
+
+		// Try and init CiviCRM.
+		if ( ! $this->civicrm->is_initialised() ) {
+			return $state_id;
+		}
+
+		// Query directly.
+		$query = 'SELECT state_province_id FROM civicrm_county WHERE id = ' . (int) $county_id;
+		$state_id = CRM_Core_DAO::singleValueQuery( $query );
+
+		// Bail on failure.
+		if ( empty( $state_id ) ) {
+			return $state_id;
+		}
+
+		// Maybe add to pseudo-cache.
+		if ( ! isset( $pseudocache[$county_id] ) ) {
+			$pseudocache[$county_id] = (int) $state_id;
+		}
+
+		// --<
+		return (int) $state_id;
+
+	}
+
+
+
+	// -------------------------------------------------------------------------
+
+
+
+	/**
+	 * Get the data for Shared Addresses.
+	 *
+	 * @since 0.4
+	 * @since 0.5 Moved to this class.
+	 *
+	 * @param integer $address_id The numeric ID of the Address.
+	 * @param array $shared The array of Shared Address data.
+	 */
+	public function addresses_shared_get_by_id( $address_id ) {
+
+		// Init return.
+		$shared = [];
+
+		// Try and init CiviCRM.
+		if ( ! $this->civicrm->is_initialised() ) {
+			return $shared;
+		}
+
+		// Construct params to find Shared Addresses.
+		$params = [
+			'version' => 3,
+			'sequential' => 1,
+			'master_id' => $address_id,
+			'options' => [
+				'limit' => 0,
+			],
+		];
+
+		// Get Shared Addresses via API.
+		$result = civicrm_api( 'Address', 'get', $params );
+
+		// Bail on failure.
+		if ( isset( $result['is_error'] ) && $result['is_error'] == '1' ) {
+			return $shared;
+		}
+
+		// Bail if there are no results.
+		if ( empty( $result['values'] ) ) {
+			return $shared;
+		}
+
+ 		// Return the result set as an array of objects.
+ 		foreach ( $result['values'] as $item ) {
+			$shared[] = (object) $item;
+		}
+
+		// --<
+		return $shared;
+
+	}
+
+
+
+	/**
+	 * Get the data for an Address.
+	 *
+	 * @since 0.4
+	 * @since 0.5 Moved to this class.
+	 *
+	 * @param integer $address_id The numeric ID of the Address.
+	 * @param object|bool $address The Address data object, or false if none.
+	 */
+	public function address_get_by_id( $address_id ) {
+
+		// Init return.
+		$address = false;
+
+		// Try and init CiviCRM.
+		if ( ! $this->civicrm->is_initialised() ) {
+			return $address;
+		}
+
+		// Construct API query.
+		$params = [
+			'version' => 3,
+			'id' => $address_id,
+		];
+
+		// Get Address details via API.
+		$result = civicrm_api( 'Address', 'get', $params );
+
+		// Bail if there's an error.
+		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+			return $address;
+		}
+
+		// Bail if there are no results.
+		if ( empty( $result['values'] ) ) {
+			return $address;
+		}
+
+ 		// The result set should contain only one item.
+		$address = (object) array_pop( $result['values'] );
+
+		// --<
+		return $address;
+
+	}
+
+
+
+	/**
+	 * Get the data for a Contact's Address by Location Type.
+	 *
+	 * @since 0.4
+	 * @since 0.5 Moved to this class.
+	 *
+	 * @param integer $contact_id The numeric ID of the CiviCRM Contact.
+	 * @param integer $location_type_id The numeric ID of the Address Location Type.
+	 * @param object $address The array of Address data, or empty if none.
+	 */
+	public function address_get_by_location( $contact_id, $location_type_id ) {
+
+		// Init return.
+		$address = false;
+
+		// Try and init CiviCRM.
+		if ( ! $this->civicrm->is_initialised() ) {
+			return $address;
+		}
+
+		// Construct API query.
+		$params = [
+			'version' => 3,
+			'contact_id' => $contact_id,
+			'location_type_id' => $location_type_id,
+		];
+
+		// Get Address details via API.
+		$result = civicrm_api( 'Address', 'get', $params );
+
+		// Bail if there's an error.
+		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+			return $address;
+		}
+
+		// Bail if there are no results.
+		if ( empty( $result['values'] ) ) {
+			return $address;
+		}
+
+ 		// The result set should contain only one item.
+		$address = (object) array_pop( $result['values'] );
+
+		// --<
+		return $address;
+
+	}
+
+
+
+	/**
+	 * Get the Addresses for a Contact ID.
+	 *
+	 * @since 0.4
+	 * @since 0.5 Moved to this class.
+	 *
+	 * @param integer $contact_id The numeric ID of the Contact.
+	 * @param array $addresses The array of data for the Addresses, or empty if none.
+	 */
+	public function addresses_get_by_contact_id( $contact_id ) {
+
+		// Init return.
+		$addresses = [];
+
+		// Try and init CiviCRM.
+		if ( ! $this->civicrm->is_initialised() ) {
+			return $addresses;
+		}
+
+		// Construct API query.
+		$params = [
+			'version' => 3,
+			'contact_id' => $contact_id,
+		];
+
+		// Get Address details via API.
+		$result = civicrm_api( 'Address', 'get', $params );
+
+		// Bail if there's an error.
+		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+			return $addresses;
+		}
+
+		// Bail if there are no results.
+		if ( empty( $result['values'] ) ) {
+			return $addresses;
+		}
+
+ 		// Return the result set as an array of objects.
+ 		foreach ( $result['values'] as $item ) {
+			$addresses[] = (object) $item;
+		}
+
+		// --<
+		return $addresses;
+
+	}
+
+
+
+	/**
+	 * Get the Primary Address for a Contact ID.
+	 *
+	 * @since 0.4
+	 * @since 0.5 Moved to this class.
+	 *
+	 * @param integer $contact_id The numeric ID of the Contact.
+	 * @param array $address The Address data object, or false if none.
+	 */
+	public function address_get_primary_by_contact_id( $contact_id ) {
+
+		// Init return.
+		$address = false;
+
+		// Try and init CiviCRM.
+		if ( ! $this->civicrm->is_initialised() ) {
+			return $addresses;
+		}
+
+		// Construct API query.
+		$params = [
+			'version' => 3,
+			'is_primary' => 1,
+			'contact_id' => $contact_id,
+		];
+
+		// Get Address details via API.
+		$result = civicrm_api( 'Address', 'get', $params );
+
+		// Bail if there's an error.
+		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+			return $address;
+		}
+
+		// Bail if there are no results.
+		if ( empty( $result['values'] ) ) {
+			return $address;
+		}
+
+ 		// The result set should contain only one item.
+		$address = (object) array_pop( $result['values'] );
+
+		// --<
+		return $address;
+
+	}
+
+
+
+	// -------------------------------------------------------------------------
+
+
+
+	/**
+	 * Get a Location Type by its numeric ID.
+	 *
+	 * @since 0.4
+	 * @since 0.5 Moved to this class.
+	 *
+	 * @param integer $location_type_id The numeric ID of the Location Type.
+	 * @return array $location_type The array of Location Type data.
+	 */
+	public function location_type_get_by_id( $location_type_id ) {
+
+		// Init return.
+		$location_type = [];
+
+		// Try and init CiviCRM.
+		if ( ! $this->civicrm->is_initialised() ) {
+			return $location_type;
+		}
+
+		// Params to get the Address Type.
+		$params = [
+			'version' => 3,
+			'sequential' => 1,
+			'id' => $location_type_id,
+		];
+
+		// Call the CiviCRM API.
+		$result = civicrm_api( 'LocationType', 'get', $params );
+
+		// Bail if there's an error.
+		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+			return $location_type;
+		}
+
+		// Bail if there are no results.
+		if ( empty( $result['values'] ) ) {
+			return $location_type;
+		}
+
+ 		// The result set should contain only one item.
+		$location_type = array_pop( $result['values'] );
+
+		// --<
+		return $location_type;
+
+	}
+
+
+
+	/**
+	 * Get the Location Types that are defined in CiviCRM.
+	 *
+	 * @since 0.4
+	 * @since 0.5 Moved to this class.
+	 *
+	 * @return array $location_types The array of possible Location Types.
+	 */
+	public function location_types_get() {
+
+		// Init return.
+		$location_types = [];
+
+		// Try and init CiviCRM.
+		if ( ! $this->civicrm->is_initialised() ) {
+			return $location_types;
+		}
+
+		// Params to get all Location Types.
+		$params = [
+			'version' => 3,
+			'sequential' => 1,
+			'options' => [
+				'limit' => 0,
+			],
+		];
+
+		// Call the CiviCRM API.
+		$result = civicrm_api( 'LocationType', 'get', $params );
+
+		// Bail if there's an error.
+		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+			return $location_types;
+		}
+
+		// Bail if there are no results.
+		if ( empty( $result['values'] ) ) {
+			return $location_types;
+		}
+
+		// Assign results to return.
+		$location_types = $result['values'];
+
+		// --<
+		return $location_types;
+
+	}
+
+
+
+	// -------------------------------------------------------------------------
+
+
+
+	/**
+	 * Update a CiviCRM Contact's Address Record.
+	 *
+	 * If you want to "create" an Address Record, do not pass $data['id'] in. The
+	 * presence of an ID will cause an update to that Address Record.
+	 *
+	 * @since 0.4
+	 * @since 0.5 Moved to this class.
+	 *
+	 * @param integer $contact_id The numeric ID of the Contact.
+	 * @param string $data The Address data to update the Contact with.
+	 * @return array|bool $address The array of Address Record data, or false on failure.
+	 */
+	public function update( $contact_id, $data ) {
+
+		// Init return.
+		$address = false;
+
+		// Try and init CiviCRM.
+		if ( ! $this->civicrm->is_initialised() ) {
+			return $address;
+		}
+
+		// Define params to create new Address Record.
+		$params = [
+			'version' => 3,
+			'contact_id' => $contact_id,
+		] + $data;
+
+		// Call the API.
+		$result = civicrm_api( 'Address', 'create', $params );
+
+		// Bail if there's an error.
+		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+			return $address;
+		}
+
+		// Bail if there are no results.
+		if ( empty( $result['values'] ) ) {
+			return $address;
+		}
+
+		// The result set should contain only one item.
+		$address = array_pop( $result['values'] );
+
+		// --<
+		return $address;
+
+	}
+
+
+
+	/**
+	 * Delete an Address Record in CiviCRM.
+	 *
+	 * @since 0.4
+	 * @since 0.5 Moved to this class.
+	 *
+	 * @param integer $address_id The numeric ID of the Address Record.
+	 * @return bool $success True if successfully deleted, or false on failure.
+	 */
+	public function delete( $address_id ) {
+
+		// Init return.
+		$success = false;
+
+		// Try and init CiviCRM.
+		if ( ! $this->civicrm->is_initialised() ) {
+			return $success;
+		}
+
+		// Define params to delete this Address Record.
+		$params = [
+			'version' => 3,
+			'id' => $address_id,
+		];
+
+		// Call the API.
+		$result = civicrm_api( 'Address', 'delete', $params );
+
+		// Bail if there's an error.
+		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+			return $success;
+		}
+
+		// Bail if there are no results.
+		if ( empty( $result['values'] ) ) {
+			return $success;
+		}
+
+		// The result set should contain only one item.
+		$success = ( $result['values'] == '1' ) ? true : false;
+
+		// --<
+		return $success;
+
+	}
+
+
+
+	/**
+	 * Update a CiviCRM Contact's Address Record.
+	 *
+	 * @since 0.4
+	 * @since 0.5 Moved to this class.
+	 *
+	 * @param integer $contact_id The numeric ID of the Contact.
+	 * @param array $data The Address data to save.
+	 * @return array|bool $address The array of Address data, or false on failure.
+	 */
+	public function address_record_update( $contact_id, $data ) {
+
+		// Init return.
+		$address = false;
+
+		// Try and init CiviCRM.
+		if ( ! $this->civicrm->is_initialised() ) {
+			return $address;
+		}
+
+		// Get the current Address for this Location Type.
+		$params = [
+			'version' => 3,
+			'contact_id' => $contact_id,
+			'location_type_id' => $data['location_type_id'],
+		];
+
+		// Call the CiviCRM API.
+		$existing_address = civicrm_api( 'Address', 'get', $params );
+
+		// Bail if there's an error.
+		if ( ! empty( $existing_address['is_error'] ) && $existing_address['is_error'] == 1 ) {
+			return $address;
+		}
+
+		// Update the Address if there is an existing one.
+		if ( ! empty( $existing_address['values'] ) ) {
+			$existing = array_pop( $existing_address['values'] );
+			$data['id'] = $existing['id'];
+		}
+
+		// Go ahead and update.
+		$address = $this->update( $contact_id, $data );
+
+		// --<
+		return $address;
+
+	}
+
+
+
+	// -------------------------------------------------------------------------
+
+
+
+	/**
+	 * Get the Address Field options for a given Field ID.
+	 *
+	 * @since 0.5
+	 *
+	 * @param string $name The name of the field.
+	 * @return array $field The array of field data.
+	 */
+	public function get_by_name( $name ) {
+
+		// Init return.
+		$field = [];
+
+		// Try and init CiviCRM.
+		if ( ! $this->civicrm->is_initialised() ) {
+			return $field;
+		}
+
+		// Construct params.
+		$params = [
+			'version' => 3,
+			'name' => $name,
+			'action' => 'get',
+		];
+
+		// Call the API.
+		$result = civicrm_api( 'Address', 'getfield', $params );
+
+		// Bail if there's an error.
+		if ( ! empty( $result['is_error'] ) && $result['is_error'] == 1 ) {
+			return $field;
+		}
+
+		// Bail if there are no results.
+		if ( empty( $result['values'] ) ) {
+			return $field;
+		}
+
+		// The result set is the item.
+		$field = $result['values'];
+
+		// --<
+		return $field;
+
+	}
+
+
+
+	/**
+	 * Get the mapped Address Field name if present.
+	 *
+	 * @since 0.5
+	 *
+	 * @param array $field The existing field data array.
+	 * @return string|bool $address_field_name The name of the Address Field, or false if none.
+	 */
+	public function address_field_name_get( $field ) {
+
+		// Init return.
+		$address_field_name = false;
+
+		// Get the BuddyPress CiviCRM Field key.
+		$bp_field_key = $this->civicrm->bp_field_key_get();
+
+		// Set the mapped Address Field name if present.
+		if ( isset( $field[$bp_field_key] ) ) {
+			if ( false !== strpos( $field[$bp_field_key], $this->address_field_prefix ) ) {
+				$address_field_name = (string) str_replace( $this->address_field_prefix, '', $field[$bp_field_key] );
+			}
+		}
+
+		/**
+		 * Filter the Address Field name.
+		 *
+		 * @since 0.5
+		 *
+		 * @param integer $address_field_name The existing Address Field name.
+		 * @param array $field The array of BuddyPress Field data.
+		 * @return integer $address_field_name The modified Address Field name.
+		 */
+		$address_field_name = apply_filters( 'cwps/bp/civicrm/address/address_field/name', $address_field_name, $field );
+
+		// --<
+		return $address_field_name;
+
+	}
+
+
+
+	/**
+	 * Appends an array of Setting Field choices for a Bypass BuddyPress Field Group when found.
+	 *
+	 * @since 0.5
+	 *
+	 * @param array $choices The existing Setting Field choices array.
+	 * @param array $field The BuddyPress Field data array.
+	 * @param array $field_group The BuddyPress Field Group data array.
+	 * @param array $entity_array The Entity and ID array.
+	 * @return array|bool $setting_field The Setting Field array if populated, false if conflicting.
+	 */
+	public function query_bypass_settings_choices( $choices, $field, $field_group, $entity_array ) {
+
+		// Pass if a Contact Entity is not present.
+		if ( ! array_key_exists( 'contact', $entity_array ) ) {
+			return $choices;
+		}
+
+		// Get the public fields on the Entity for this Field Type.
+		$public_fields = $this->civicrm_fields_get( 'public' );
+		$fields_for_entity = [];
+		foreach ( $public_fields as $key => $value ) {
+			if ( $field['type'] == $this->address_fields[$value['name']] ) {
+				// Skip the ones that are not needed in BuddyPressE Forms.
+				if ( ! array_key_exists( $value['name'], $this->bypass_fields_to_remove ) ) {
+					$fields_for_entity[] = $value;
+				}
+			}
+		}
+
+		// Get the Custom Fields for this Entity.
+		$custom_fields = $this->plugin->civicrm->custom_field->get_for_entity_type( 'Address', '' );
+
+		/**
+		 * Filter the Custom Fields.
+		 *
+		 * @since 0.5
+		 *
+		 * @param array The initially empty array of filtered Custom Fields.
+		 * @param array $custom_fields The CiviCRM Custom Fields array.
+		 * @param array $field The BuddyPress Field data array.
+		 */
+		$filtered_fields = apply_filters( 'cwps/bp/query_settings/custom_fields_filter', [], $custom_fields, $field );
+
+		// Pass if not populated.
+		if ( empty( $fields_for_entity ) && empty( $filtered_fields ) ) {
+			return $choices;
+		}
+
+		// Build Address Field choices array for dropdown.
+		if ( ! empty( $fields_for_entity ) ) {
+			$address_fields_label = esc_attr__( 'Address Fields', 'civicrm-wp-profile-sync' );
+			foreach ( $fields_for_entity as $address_field ) {
+				$choices[$address_fields_label][$this->address_field_prefix . $address_field['name']] = $address_field['title'];
+			}
+		}
+
+		// Build Custom Field choices array for dropdown.
+		if ( ! empty( $filtered_fields ) ) {
+			$custom_field_prefix = $this->civicrm->custom_field_prefix();
+			foreach ( $filtered_fields as $custom_group_name => $custom_group ) {
+				$custom_fields_label = esc_attr( $custom_group_name );
+				foreach ( $custom_group as $custom_field ) {
+					$choices[$custom_fields_label][$custom_field_prefix . $custom_field['id']] = $custom_field['label'];
+				}
+			}
+		}
+
+		/**
+		 * Filter the choices to display in the "CiviCRM Field" select.
+		 *
+		 * @since 0.5
+		 *
+		 * @param array $choices The choices for the Setting Field array.
+		 */
+		$choices = apply_filters( 'cwps/bp/civicrm/address/civicrm_field/choices', $choices );
+
+		// Return populated array.
+		return $choices;
+
+	}
+
+
+
+	/**
+	 * Modify the Settings of an BuddyPress "Text" Field.
+	 *
+	 * @since 0.5
+	 *
+	 * @param array $field The existing BuddyPress Field data array.
+	 * @param array $field_group The BuddyPress Field Group data array.
+	 * @return array $field The modified BuddyPress Field data array.
+	 */
+	public function text_settings_modify( $field, $field_group ) {
+
+		// Bail early if not our Field Type.
+		if ( 'text' !== $field['type'] ) {
+			return $field;
+		}
+
+		// Skip if the CiviCRM Field key isn't there or isn't populated.
+		$key = $this->civicrm->bp_field_key_get();
+		if ( ! array_key_exists( $key, $field ) || empty( $field[$key] ) ) {
+			return $field;
+		}
+
+		// Get the mapped Address Field name if present.
+		$address_field_name = $this->address_field_name_get( $field );
+		if ( $address_field_name === false ) {
+			return $field;
+		}
+
+		// Get Address Field data.
+		$field_data = $this->get_by_name( $address_field_name );
+
+		// Set the "maxlength" attribute.
+		if ( ! empty( $field_data['maxlength'] ) ) {
+			$field['maxlength'] = $field_data['maxlength'];
+		}
+
+		// --<
+		return $field;
+
+	}
+
+
+
+	/**
+	 * Validate the content of a Field.
+	 *
+	 * Some Address Fields require validation.
+	 *
+	 * @since 0.5
+	 *
+	 * @param bool $valid The existing valid status.
+	 * @param mixed $value The value of the Field.
+	 * @param array $field The Field data array.
+	 * @param string $input The input element's name attribute.
+	 * @return string|bool $valid A string to display a custom error message, boolean otherwise.
+	 */
+	public function value_validate( $valid, $value, $field, $input ) {
+
+		// Bail if it's not required and is empty.
+		if ( $field['required'] == '0' && empty( $value ) ) {
+			return $valid;
+		}
+
+		// Get the mapped Address Field name if present.
+		$address_field_name = $this->address_field_name_get( $field );
+		if ( $address_field_name === false ) {
+			return $valid;
+		}
+
+		// Validate depending on the field name.
+		switch ( $address_field_name ) {
+
+			case 'duration' :
+				// Must be an integer.
+				if ( ! ctype_digit( $value ) ) {
+					$valid = __( 'Must be an integer.', 'civicrm-wp-profile-sync' );
+				}
+				break;
+
+		}
+
+		// --<
+		return $valid;
+
+	}
+
+
+
+} // Class ends.
+
+
+

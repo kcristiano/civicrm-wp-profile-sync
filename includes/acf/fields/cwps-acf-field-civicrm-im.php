@@ -602,8 +602,8 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Instant_Messenger extends acf_field {
 			'prefix' => '',
 		];
 
-		// Get Locations.
-		$location_types = $this->civicrm->im->location_types_get();
+		// Instant Messenger Locations are standard Location Types.
+		$location_types = $this->plugin->civicrm->address->location_types_get();
 
 		// Build Location Types choices array for dropdown.
 		$locations = [];

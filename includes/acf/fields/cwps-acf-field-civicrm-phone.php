@@ -628,8 +628,8 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Phone_Field extends acf_field {
 			'prefix' => '',
 		];
 
-		// Get Locations.
-		$location_types = $this->civicrm->phone->location_types_get();
+		// Phone Locations are standard Location Types.
+		$location_types = $this->plugin->civicrm->address->location_types_get();
 
 		// Build Location Types choices array for dropdown.
 		$locations = [];
@@ -678,7 +678,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Phone_Field extends acf_field {
 				'class' => '',
 				'id' => '',
 			],
-			'choices' => $this->civicrm->phone->phone_types_get(),
+			'choices' => $this->plugin->civicrm->phone->phone_types_get(),
 			'default_value' => false,
 			'allow_null' => 0,
 			'multiple' => 0,

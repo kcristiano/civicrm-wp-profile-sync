@@ -183,7 +183,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_City_Field extends acf_field {
 	public function render_field_settings( $field ) {
 
 		// Get Locations.
-		$location_types = $this->civicrm->address->location_types_get();
+		$location_types = $this->plugin->civicrm->address->location_types_get();
 
 		// Init choices.
 		$choices = [];
@@ -341,7 +341,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_City_Field extends acf_field {
 		if ( $contact_id !== false ) {
 
 			// Get this Contact's Addresses.
-			$addresses = $this->civicrm->address->addresses_get_by_contact_id( $contact_id );
+			$addresses = $this->plugin->civicrm->address->addresses_get_by_contact_id( $contact_id );
 
 			// Init City.
 			$city = false;

@@ -170,7 +170,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address_City extends CiviCRM_Profile_Sync
 	public function contact_sync_to_post( $args ) {
 
 		// Get all Address Records for this Contact.
-		$data = $this->civicrm->address->addresses_get_by_contact_id( $args['objectId'] );
+		$data = $this->plugin->civicrm->address->addresses_get_by_contact_id( $args['objectId'] );
 
 		// Bail if there are no Address Records.
 		if ( empty( $data ) ) {
@@ -249,7 +249,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address_City extends CiviCRM_Profile_Sync
 		$this->address_process( $address, $args );
 
 		// If this address is a "Master Address" then it will return "Shared Addresses".
-		$addresses_shared = $this->civicrm->address->addresses_shared_get_by_id( $address->id );
+		$addresses_shared = $this->plugin->civicrm->address->addresses_shared_get_by_id( $address->id );
 
 		// Bail if there are none.
 		if ( empty( $addresses_shared ) ) {
@@ -289,7 +289,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address_City extends CiviCRM_Profile_Sync
 		$address_id = (int) $args['objectId'];
 
 		// Grab the Address Record data from the database.
-		$address_pre = $this->civicrm->address->address_get_by_id( $address_id );
+		$address_pre = $this->plugin->civicrm->address->address_get_by_id( $address_id );
 
 		// Maybe cast previous Address Record data as object and stash in a property.
 		if ( ! is_object( $address_pre ) ) {
@@ -328,7 +328,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address_City extends CiviCRM_Profile_Sync
 		$this->address_process( $this->address_pre, $args );
 
 		// If this address is a "Master Address" then it will return "Shared Addresses".
-		$addresses_shared = $this->civicrm->address->addresses_shared_get_by_id( $this->address_pre->id );
+		$addresses_shared = $this->plugin->civicrm->address->addresses_shared_get_by_id( $this->address_pre->id );
 
 		// Bail if there are none.
 		if ( empty( $addresses_shared ) ) {

@@ -183,7 +183,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_Country_Field extends acf_fiel
 	public function render_field_settings( $field ) {
 
 		// Get Locations.
-		$location_types = $this->civicrm->address->location_types_get();
+		$location_types = $this->plugin->civicrm->address->location_types_get();
 
 		// Init choices.
 		$choices = [];
@@ -341,7 +341,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_Country_Field extends acf_fiel
 		if ( $contact_id !== false ) {
 
 			// Get this Contact's Addresses.
-			$addresses = $this->civicrm->address->addresses_get_by_contact_id( $contact_id );
+			$addresses = $this->plugin->civicrm->address->addresses_get_by_contact_id( $contact_id );
 
 			// Init Country ID.
 			$country_id = false;
@@ -372,7 +372,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_Country_Field extends acf_fiel
 
 			// Overwrite if we get a value.
 			if ( $country_id !== false ) {
-				$country = $this->civicrm->address->country_get_by_id( $country_id );
+				$country = $this->plugin->civicrm->address->country_get_by_id( $country_id );
 				$value = $country['name'];
 			}
 

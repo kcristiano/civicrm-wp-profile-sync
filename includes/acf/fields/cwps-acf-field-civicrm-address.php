@@ -589,7 +589,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_Field extends acf_field {
 		$config = CRM_Core_Config::singleton();
 
 		// Get Locations.
-		$location_types = $this->civicrm->address->location_types_get();
+		$location_types = $this->plugin->civicrm->address->location_types_get();
 
 		// Build Location Types choices array for dropdown.
 		$locations = [];

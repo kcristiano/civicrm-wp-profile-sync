@@ -291,7 +291,7 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 		foreach ( $contact_types as $contact_type ) {
 
 			// Call the method for the Contact Type.
-			$fields_for_contact_type = $this->plugin->civicrm->custom_field->get_for_contact_type( $contact_type['type'], $contact_type['subtype'] );
+			$fields_for_contact_type = $this->get_for_contact_type( $contact_type['type'], $contact_type['subtype'] );
 
 			// Add to return array.
 			$custom_fields = $custom_fields + $fields_for_contact_type;
@@ -539,8 +539,8 @@ class CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Field {
 	 * Get the Custom Fields for a CiviCRM Entity Type/Subtype.
 	 *
 	 * There's a discussion to be had about whether or not to include Custom Groups
-	 * for a Contact Subtype or not. The code in this method can return data
-	 * specific to the Subtype, but it's presumably desirable to include all
+	 * for a Contact Sub-type or not. The code in this method can return data
+	 * specific to the Sub-type, but it's presumably desirable to include all
 	 * Custom Groups that apply to a Contact Type.
 	 *
 	 * There's also a slight weakness in this code, in that the returned array is

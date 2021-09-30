@@ -67,15 +67,6 @@ class CiviCRM_WP_Profile_Sync_BuddyPress {
 	public $buddyboss;
 
 	/**
-	 * BuddyPress Member Type object.
-	 *
-	 * @since 0.5
-	 * @access public
-	 * @var object $member_type The BuddyPress Member Type object.
-	 */
-	public $member_type;
-
-	/**
 	 * BuddyPress Field object.
 	 *
 	 * @since 0.5
@@ -158,8 +149,7 @@ class CiviCRM_WP_Profile_Sync_BuddyPress {
 	public function include_files() {
 
 		// Include class files.
-		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-member-type.php';
-		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-field.php';
+		//include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-field.php';
 
 		// Maybe include BuddyBoss class.
 		if ( $this->is_buddyboss === true ) {
@@ -178,8 +168,7 @@ class CiviCRM_WP_Profile_Sync_BuddyPress {
 	public function setup_objects() {
 
 		// Init objects.
-		$this->member_type = new CiviCRM_Profile_Sync_BP_Member_Type( $this );
-		$this->field = new CiviCRM_Profile_Sync_BP_xProfile_Field( $this );
+		//$this->field = new CiviCRM_Profile_Sync_BP_xProfile_Field( $this );
 
 		// Maybe init BuddyBoss object.
 		if ( $this->is_buddyboss === true ) {
@@ -234,7 +223,7 @@ class CiviCRM_WP_Profile_Sync_BuddyPress {
 		// Callbacks for new and edited BuddyPress User actions.
 		add_action( 'cwps/mapper/bp_xprofile_edited', [ $this, 'user_edited' ], 20 );
 		add_action( 'cwps/mapper/bp_signup_user', [ $this, 'user_edited' ], 20 );
-		//add_action( 'cwps/mapper/bp_activated_user', [ $this, 'user_edited' ], 20 );
+		add_action( 'cwps/mapper/bp_activated_user', [ $this, 'user_edited' ], 20 );
 
 	}
 
@@ -250,7 +239,7 @@ class CiviCRM_WP_Profile_Sync_BuddyPress {
 		// Remove callbacks for new and edited BuddyPress User actions.
 		remove_action( 'cwps/mapper/bp_xprofile_edited', [ $this, 'user_edited' ], 20 );
 		remove_action( 'cwps/mapper/bp_signup_user', [ $this, 'user_edited' ], 20 );
-		//remove_action( 'cwps/mapper/bp_activated_user', [ $this, 'user_edited' ], 20 );
+		remove_action( 'cwps/mapper/bp_activated_user', [ $this, 'user_edited' ], 20 );
 
 	}
 

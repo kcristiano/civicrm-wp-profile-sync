@@ -95,6 +95,24 @@ class CiviCRM_WP_Profile_Sync_CiviCRM {
 	public $website;
 
 	/**
+	 * CiviCRM Address object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $address The CiviCRM Address object.
+	 */
+	public $address;
+
+	/**
+	 * CiviCRM Phone object.
+	 *
+	 * @since 0.5
+	 * @access public
+	 * @var object $phone The CiviCRM Phone object.
+	 */
+	public $phone;
+
+	/**
 	 * CiviCRM Bulk Operations object.
 	 *
 	 * @since 0.4
@@ -163,6 +181,8 @@ class CiviCRM_WP_Profile_Sync_CiviCRM {
 		require CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/civicrm/cwps-civicrm-custom-group.php';
 		require CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/civicrm/cwps-civicrm-email.php';
 		require CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/civicrm/cwps-civicrm-website.php';
+		require CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/civicrm/cwps-civicrm-address.php';
+		require CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/civicrm/cwps-civicrm-phone.php';
 		require CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/civicrm/cwps-civicrm-bulk.php';
 
 	}
@@ -184,6 +204,8 @@ class CiviCRM_WP_Profile_Sync_CiviCRM {
 		$this->custom_group = new CiviCRM_WP_Profile_Sync_CiviCRM_Custom_Group( $this );
 		$this->email = new CiviCRM_WP_Profile_Sync_CiviCRM_Email( $this );
 		$this->website = new CiviCRM_WP_Profile_Sync_CiviCRM_Website( $this );
+		$this->address = new CiviCRM_WP_Profile_Sync_CiviCRM_Address( $this );
+		$this->phone = new CiviCRM_WP_Profile_Sync_CiviCRM_Phone( $this );
 		$this->bulk = new CiviCRM_WP_Profile_Sync_CiviCRM_Bulk( $this );
 
 	}

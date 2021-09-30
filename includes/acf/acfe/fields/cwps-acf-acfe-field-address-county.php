@@ -445,7 +445,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Address_County extends acf_field {
 			if( ! empty( $county ) ) {
 
 				// Try and get the State ID.
-				$state_id = $this->civicrm->address->state_get_for_county( $field['value'] );
+				$state_id = $this->plugin->civicrm->address->state_get_for_county( $field['value'] );
 				if ( ! empty( $state_id ) ) {
 					$field['choices'] = CRM_Core_PseudoConstant::countyForState( $state_id );;
 				}
@@ -703,7 +703,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Address_County extends acf_field {
 		);
 
 		// Get the Counties keyed by State ID.
-		$counties = $this->civicrm->address->counties_get_for_states();
+		$counties = $this->plugin->civicrm->address->counties_get_for_states();
 
 		// Build data array.
 		$vars = [
