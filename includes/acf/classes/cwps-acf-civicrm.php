@@ -284,10 +284,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM {
 	public $campaign;
 
 	/**
-	 * "CiviCRM Field" field key in the ACF Field data.
+	 * "CiviCRM Field" Field key in the ACF Field data.
 	 *
-	 * This "top level" field key is common to all CiviCRM Entities. The value
-	 * of the field has a prefix which distiguishes the target Entity.
+	 * This "top level" Field key is common to all CiviCRM Entities. The value
+	 * of the Field has a prefix which distiguishes the target Entity.
 	 *
 	 * @see self::custom_field_prefix()
 	 * @see self::contact_field_prefix()
@@ -814,32 +814,6 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM {
 			'objectRef' => $objectRef,
 			//'backtrace' => $trace,
 		], true ) );
-
-	}
-
-
-
-	// -------------------------------------------------------------------------
-
-
-
-	/**
-	 * Utility for de-nullifying CiviCRM data.
-	 *
-	 * @since 0.4
-	 *
-	 * @param mixed $value The existing value.
-	 * @return mixed $value The cleaned value.
-	 */
-	public function denullify( $value ) {
-
-		// Catch inconsistent CiviCRM "empty-ish" values.
-		if ( empty( $value ) || $value == 'null' || $value == 'NULL' ) {
-			$value = '';
-		}
-
-		// --<
-		return $value;
 
 	}
 

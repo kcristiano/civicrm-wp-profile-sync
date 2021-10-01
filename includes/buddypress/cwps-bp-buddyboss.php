@@ -91,7 +91,7 @@ class CiviCRM_Profile_Sync_BP_BuddyBoss {
 	public function register_hooks() {
 
 		// Hook into CiviCRM-to-WordPress Contact sync process.
-		add_action( 'cwps/civicrm/contact/contact_sync/post', [ $this, 'contact_synced' ], 10 );
+		add_action( 'cwps/civicrm/contact/contact_sync/post', [ $this, 'contact_synced' ], 20 );
 
 	}
 

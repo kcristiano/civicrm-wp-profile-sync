@@ -396,7 +396,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 			'choices' => $this->civicrm->case_field->options_get( 'case_medium_id' ),
 		];
 
-		// Define "Dismiss if exists" field.
+		// Define "Dismiss if exists" Field.
 		$dismiss_if_exists_field = [
 			'key' => $this->field_key . 'dismiss_if_exists',
 			'label' => __( 'Create Case?', 'civicrm-wp-profile-sync' ),
@@ -875,7 +875,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Case extends CiviCRM_Profile_Syn
 		// Get the Case Type.
 		$data['case_type_id'] = get_sub_field( $this->field_key . 'case_types' );
 
-		// Only set "Case Status" and "Encounter Medium" when there is no mapped field.
+		// Only set "Case Status" and "Encounter Medium" when there is no mapped Field.
 		if ( empty( $data['status_id'] ) ) {
 			$data['status_id'] = get_sub_field( $this->field_key . 'case_status_id' );
 		}

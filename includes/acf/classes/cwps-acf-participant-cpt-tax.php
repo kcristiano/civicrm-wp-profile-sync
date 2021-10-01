@@ -1326,7 +1326,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 		// Denullify the description.
 		if ( ! empty( $participant_role->description ) ) {
-			$description = $this->civicrm->denullify( $participant_role->description );
+			$description = $this->plugin->civicrm->denullify( $participant_role->description );
 		} else {
 			$description = '';
 		}
@@ -1411,7 +1411,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Tax {
 
 		// Denullify the description.
 		if ( ! empty( $role_full['description'] ) ) {
-			$role_full['description'] = $this->civicrm->denullify( $role_full['description'] );
+			$role_full['description'] = $this->plugin->civicrm->denullify( $role_full['description'] );
 		} else {
 			$role_full['description'] = '';
 		}

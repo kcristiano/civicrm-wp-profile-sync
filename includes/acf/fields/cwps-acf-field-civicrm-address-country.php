@@ -74,7 +74,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_Country_Field extends acf_fiel
 	 *
 	 * This must be populated in the class constructor because it is translatable.
 	 *
-	 * Multiple words, can include spaces, visible when selecting a field type.
+	 * Multiple words, can include spaces, visible when selecting a Field Type.
 	 *
 	 * @since 0.5
 	 * @access public
@@ -98,7 +98,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_Country_Field extends acf_fiel
 	/**
 	 * Field Type defaults.
 	 *
-	 * Array of default settings which are merged into the field object.
+	 * Array of default settings which are merged into the Field object.
 	 * These are used later in settings.
 	 *
 	 * @since 0.5
@@ -193,7 +193,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_Country_Field extends acf_fiel
 			$choices[$location_type['id']] = esc_attr( $location_type['display_name'] );
 		}
 
-		// Define Primary setting field.
+		// Define Primary setting Field.
 		$primary = [
 			'label' => __( 'CiviCRM Primary Address', 'civicrm-wp-profile-sync' ),
 			'name' => 'country_is_primary',
@@ -207,7 +207,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_Country_Field extends acf_fiel
 		// Now add it.
 		acf_render_field_setting( $field, $primary );
 
-		// Define Location Type setting field.
+		// Define Location Type setting Field.
 		$type = [
 			'label' => __( 'CiviCRM Location Type', 'civicrm-wp-profile-sync' ),
 			'name' => 'country_location_type_id',
@@ -248,7 +248,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_Country_Field extends acf_fiel
 	 */
 	public function render_field( $field ) {
 
-		// Change Field into a simple text field.
+		// Change Field into a simple text Field.
 		$field['type'] = 'text';
 		$field['readonly'] = 1;
 		$field['allow_null'] = 0;
@@ -256,13 +256,13 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_Country_Field extends acf_fiel
 		$field['append'] = '';
 		$field['step'] = '';
 
-		// Populate field.
+		// Populate Field.
 		if ( ! empty( $field['value'] ) ) {
 
 			// Ensure value is cast as a string.
 			$country = (string) $field['value'];
 
-			// Apply Country to field.
+			// Apply Country to Field.
 			$field['value'] = $country;
 
 		}
@@ -281,7 +281,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_Country_Field extends acf_fiel
 	 *
 	 * @param mixed $value The value found in the database.
 	 * @param integer|string $post_id The ACF "Post ID" from which the value was loaded.
-	 * @param array $field The field array holding all the field options.
+	 * @param array $field The Field array holding all the Field options.
 	 * @return mixed $value The modified value.
 	 */
 	public function load_value( $value, $post_id, $field ) {
@@ -305,7 +305,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_Country_Field extends acf_fiel
 	 *
 	 * @param mixed $value The value found in the database.
 	 * @param integer $post_id The Post ID from which the value was loaded.
-	 * @param array $field The field array holding all the field options.
+	 * @param array $field The Field array holding all the Field options.
 	 * @return mixed $value The modified value.
 	 */
 	public function update_value( $value, $post_id, $field ) {
@@ -329,7 +329,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_Country_Field extends acf_fiel
 	 *
 	 * @param mixed $value The value found in the database.
 	 * @param integer $post_id The Post ID from which the value was loaded.
-	 * @param array $field The field array holding all the field options.
+	 * @param array $field The Field array holding all the Field options.
 	 * @return mixed $value The modified value.
 	 */
 	public function get_country( $value, $post_id, $field ) {
@@ -393,7 +393,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_Country_Field extends acf_fiel
 	 *
 	 * @param mixed $value The value which was loaded from the database.
 	 * @param mixed $post_id The Post ID from which the value was loaded.
-	 * @param array $field The field array holding all the field options.
+	 * @param array $field The Field array holding all the Field options.
 	 * @return mixed $value The modified value.
 	public function format_value( $value, $post_id, $field ) {
 
@@ -421,15 +421,15 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_Country_Field extends acf_fiel
 	/**
 	 * This filter is used to perform validation on the value prior to saving.
 	 *
-	 * All values are validated regardless of the field's required setting.
+	 * All values are validated regardless of the Field's required setting.
 	 * This allows you to validate and return messages to the user if the value
 	 * is not correct.
 	 *
 	 * @since 0.5
 	 *
-	 * @param bool $valid The validation status based on the value and the field's required setting.
+	 * @param bool $valid The validation status based on the value and the Field's required setting.
 	 * @param mixed $value The $_POST value.
-	 * @param array $field The field array holding all the field options.
+	 * @param array $field The Field array holding all the Field options.
 	 * @param string $input The corresponding input name for $_POST value.
 	 * @return string|bool $valid False if not valid, or string for error message.
 	public function validate_value( $valid, $value, $field, $input ) {
@@ -473,8 +473,8 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_Country_Field extends acf_fiel
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $field The field array holding all the field options.
-	 * @return array $field The modified field data.
+	 * @param array $field The Field array holding all the Field options.
+	 * @return array $field The modified Field data.
 	public function load_field( $field ) {
 
 		// --<
@@ -490,8 +490,8 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_Country_Field extends acf_fiel
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $field The field array holding all the field options.
-	 * @return array $field The modified field data.
+	 * @param array $field The Field array holding all the Field options.
+	 * @return array $field The modified Field data.
 	public function update_field( $field ) {
 
 		// --<
@@ -507,7 +507,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Address_Country_Field extends acf_fiel
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $field The field array holding all the field options.
+	 * @param array $field The Field array holding all the Field options.
 	public function delete_field( $field ) {
 
 	}

@@ -658,7 +658,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form_Action_Contact extends CiviCRM_Profile_
 	 */
 	public function tab_action_append() {
 
-		// Define "Submitting Contact" field.
+		// Define "Submitting Contact" Field.
 		$submitting_contact_field = [
 			'key' => $this->field_key . 'submitting_contact',
 			'label' => __( 'Submitter', 'civicrm-wp-profile-sync' ),

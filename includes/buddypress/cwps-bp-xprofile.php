@@ -345,7 +345,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 
 
 	/**
-	 * Fires when a BuddyPress xProfile "Profile Group" has been updated.
+	 * Called when a BuddyPress xProfile "Profile Group" has been updated.
 	 *
 	 * This callback is hooked in after the "core" methods of this plugin have
 	 * done their thing - so a Contact will definitely exist by the time this
@@ -383,155 +383,23 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 			return;
 		}
 
-		// Prepare the CiviCRM Contact data.
-		$contact_data = $this->prepare_from_fields( $this->civicrm_ref );
-
-		/*
-		$e = new \Exception();
-		$trace = $e->getTraceAsString();
-		error_log( print_r( [
-			'method' => __METHOD__,
-			'args' => $args,
-			'civicrm_ref' => $this->civicrm_ref,
-			'contact_data' => $contact_data,
-			//'backtrace' => $trace,
-		], true ) );
-		*/
-
-		// Add the Contact ID.
-		$contact_data['id'] = $contact['id'];
-
-		// Update the Contact.
-		$contact = $this->plugin->civicrm->contact->update( $contact_data );
-
-		// Add our data to the params.
+		// Add our Field data to the params.
 		$args['field_data'] = $this->civicrm_ref;
-		$args['contact_id'] = $contact_data['id'];
+		$args['contact_id'] = $contact['id'];
 		$args['contact'] = $contact;
 
 		/**
-		 * Broadcast that a Contact has been updated when a set of BuddyPress Fields were saved.
+		 * Broadcast that a set of mapped BuddyPress Fields were saved.
 		 *
 		 * Used internally by:
 		 *
-		 * - BuddyPress Address
-		 * - BuddyPress Phone
+		 * - BuddyPress CiviCRM Contact
 		 *
 		 * @since 0.5
 		 *
-		 * @param array $args The updated array of WordPress params.
+		 * @param array $args The array of params.
 		 */
-		do_action( 'cwps/bp/contact/bp_fields_saved', $args );
-
-	}
-
-
-
-	/**
-	 * Prepares the CiviCRM Contact data from an array of BuddyPress Field data.
-	 *
-	 * This method combines all Contact Fields that the CiviCRM API accepts as
-	 * params for ( 'Contact', 'create' ) along with the linked Custom Fields.
-	 *
-	 * The CiviCRM API will update Custom Fields as long as they are passed to
-	 * ( 'Contact', 'create' ) in the correct format. This is of the form:
-	 * 'custom_N' where N is the ID of the Custom Field.
-	 *
-	 * @since 0.5
-	 *
-	 * @param array $field_data The array of BuddyPress Field data.
-	 * @return array $contact_data The CiviCRM Contact data.
-	 */
-	public function prepare_from_fields( $field_data ) {
-
-		/*
-		$e = new \Exception();
-		$trace = $e->getTraceAsString();
-		error_log( print_r( [
-			'method' => __METHOD__,
-			'field_data' => $field_data,
-			//'backtrace' => $trace,
-		], true ) );
-		*/
-
-		// Init data for fields.
-		$contact_data = [];
-
-		// Handle the data for each Field.
-		foreach ( $field_data as $data ) {
-
-			// Get metadata for this xProfile Field.
-			$args = $data['meta'];
-			if ( empty( $args ) ) {
-				continue;
-			}
-
-			// Skip if it's not a "Contact" xProfile Field.
-			if ( empty( $args['entity_type'] ) || $args['entity_type'] !== 'Contact' ) {
-				continue;
-			}
-
-			// Get the CiviCRM Custom Field and Contact Field.
-			$custom_field_id = $this->custom_field->id_get( $args['value'] );
-			$contact_field_name = $this->contact_field->name_get( $args['value'] );
-
-			// Do we have a synced Custom Field or Contact Field?
-			if ( ! empty( $custom_field_id ) || ! empty( $contact_field_name ) ) {
-
-				// If it's a Custom Field.
-				if ( ! empty( $custom_field_id ) ) {
-
-					// Build Custom Field code.
-					$code = 'custom_' . (string) $custom_field_id;
-
-				} elseif ( ! empty( $contact_field_name ) ) {
-
-					// The Contact Field code is the setting.
-					$code = $contact_field_name;
-
-				}
-
-				// Build args for value conversion.
-				$args = [
-					'custom_field_id' => $custom_field_id,
-					'contact_field_name' => $contact_field_name,
-				];
-
-				/*
-				$e = new \Exception();
-				$trace = $e->getTraceAsString();
-				error_log( print_r( [
-					'method' => __METHOD__,
-					//'contact_fields' => $contact_fields,
-					//'field_type' => $field_type,
-					'data' => $data,
-					'args' => $args,
-					//'backtrace' => $trace,
-				], true ) );
-				*/
-
-				// Parse value by Field Type.
-				$value = $this->value_get_for_civicrm( $data['value'], $data['field_type'], $args );
-
-				// Add it to the field data.
-				$contact_data[$code] = $value;
-
-			}
-
-		}
-
-		/*
-		$e = new \Exception();
-		$trace = $e->getTraceAsString();
-		error_log( print_r( [
-			'method' => __METHOD__,
-			'contact_data' => $contact_data,
-			//'backtrace' => $trace,
-		], true ) );
-		*/
-
-		// --<
-		return $contact_data;
+		do_action( 'cwps/bp/xprofile/fields_edited', $args );
 
 	}
 
@@ -561,6 +429,102 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 
 
 
+	/**
+	 * Gets the raw value of a BuddyPress xProfile Field.
+	 *
+	 * The value will, however, be unserialised when necessary.
+	 *
+	 * @since 0.5
+	 *
+	 * @param object $field The BuddyPress Field object.
+	 * @return mixed $value The raw BuddyPress Field value, or null if not present.
+	 */
+	public function field_get_value_raw( $field ) {
+
+		// Init as null.
+		$value = null;
+
+		// Maybe override with the possibly unserialised value if present.
+		if ( isset( $field->data->value ) ) {
+			$value = maybe_unserialize( $field->data->value );
+		}
+
+		// --<
+		return $value;
+
+	}
+
+
+
+	/**
+	 * Gets the full set of BuddyPress xProfile Fields for a given User.
+	 *
+	 * @since 0.5
+	 *
+	 * @param integer $user_id The numeric ID of the WordPress User.
+	 * @return array $fields The full set of BuddyPress xProfile Fields.
+	 */
+	public function fields_get_for_user( $user_id ) {
+
+		// TODO: Only do this once per User?
+		static $pseudocache;
+		if ( isset( $pseudocache[$user_id] ) ) {
+			//return $pseudocache[$user_id];
+		}
+
+		// Init return.
+		$fields = [];
+
+		// Build params by which to query xProfile.
+		$query = [
+			'user_id' => $user_id,
+			'hide_empty_groups' => false,
+			'hide_empty_fields' => false,
+		];
+
+		// If the User has a BuddyPress Profile.
+		if ( bp_has_profile( $query ) ) {
+
+			// Do the Profile Loop.
+			while ( bp_profile_groups() ) {
+				bp_the_profile_group();
+				while ( bp_profile_fields() ) {
+					bp_the_profile_field();
+
+					global $field;
+
+					$field_id = bp_get_the_profile_field_id();
+
+					// Skip if not mapped.
+					$field_meta = $this->get_metadata_all( $field_id );
+					if ( empty( $field_meta ) ) {
+						continue;
+					}
+
+					// Add to the return array.
+					$fields[] = [
+						'field_id' => $field_id,
+						'field' => $field,
+						'field_meta' => $field_meta,
+					];
+
+				}
+			}
+
+		}
+
+		// Maybe add to pseudo-cache.
+		if ( ! isset( $pseudocache[$user_id] ) ) {
+			//$pseudocache[$user_id] = $fields;
+		}
+
+		// --<
+		return $fields;
+
+	}
+
+
+
 	// -------------------------------------------------------------------------
 
 
@@ -577,6 +541,21 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	 */
 	public function value_get_for_civicrm( $value = 0, $field_type, $args = [] ) {
 
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'value' => $value,
+			'field_type' => $field_type,
+			'args' => $args,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		// Always unslash.
+		$value = wp_unslash( $value );
+
 		// Set appropriate value per Field type.
 		switch( $field_type ) {
 
@@ -588,6 +567,11 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	 		// Parse the value of a "Textarea" Field.
 			case 'textarea' :
 				$value = $this->textarea_value_get_for_civicrm( $value, $args );
+				break;
+
+	 		// Parse the value of a "Checkbox" Field.
+			case 'checkbox' :
+				$value = $this->checkbox_value_get_for_civicrm( $value, $args );
 				break;
 
 			// Other Field types may require parsing - add them here.
@@ -634,7 +618,6 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 		error_log( print_r( [
 			'method' => __METHOD__,
 			'value' => $value,
-			'field_type' => $field_type,
 			'args' => $args,
 			'format' => $format,
 			//'backtrace' => $trace,
@@ -675,6 +658,58 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 
 
 
+	/**
+	 * Get the value of a "Checkbox" Field formatted for CiviCRM.
+	 *
+	 * Some Fields of type "Checkbox" are actually "True/False" Fields which
+	 * need a populated array replaced with a numeric '1'.
+	 *
+	 * @since 0.5
+	 *
+	 * @param string $value The existing Field value.
+	 * @param array $args Any additional arguments.
+	 * @return string $value The modified value for CiviCRM.
+	 */
+	public function checkbox_value_get_for_civicrm( $value = '', $args ) {
+
+		// Bail if empty since this is an allowed value.
+		if ( empty( $value ) ) {
+			return $value;
+		}
+
+		/**
+		 * Query whether this Field is a "True/False" Field.
+		 *
+		 * @since 0.5
+		 *
+		 * @param bool True if "Checkbox" is actually a "True/False" Field. False by default.
+		 * @param array $args The arguments.
+		 */
+		$true_false = apply_filters( 'cwps/bp/xprofile/value/checkbox/query_type', false, $args );
+
+		// Overwrite if this is a "True/False" Field.
+		if ( $true_false === true ) {
+			$value = 1;
+		}
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'value' => $value,
+			'args' => $args,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		// --<
+		return $value;
+
+	}
+
+
+
 	// -------------------------------------------------------------------------
 
 
@@ -684,7 +719,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	 *
 	 * @since 0.5
 	 *
-	 * @param string $new_html Label and checkbox input field.
+	 * @param string $new_html Label and checkbox input Field.
 	 * @param object $value The current option being rendered for.
 	 * @param integer $id The ID of the Field object being rendered.
 	 * @param string $selected The current selected value.
@@ -732,7 +767,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	 *
 	 * @since 0.5
 	 *
-	 * @param string $new_html Label and select input field.
+	 * @param string $new_html Label and select input Field.
 	 * @param object $value The current option being rendered for.
 	 * @param integer $id The ID of the Field object being rendered.
 	 * @param string $selected The current selected value.
@@ -774,7 +809,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	 *
 	 * @since 0.5
 	 *
-	 * @param string $new_html Label and multiselect input field.
+	 * @param string $new_html Label and multiselect input Field.
 	 * @param object $value The current option being rendered for.
 	 * @param integer $id The ID of the Field object being rendered.
 	 * @param string $selected The current selected value.
@@ -816,7 +851,7 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	 *
 	 * @since 0.5
 	 *
-	 * @param string $new_html Label and radio input field.
+	 * @param string $new_html Label and radio input Field.
 	 * @param object $value The current option being rendered for.
 	 * @param integer $id The ID of the Field object being rendered.
 	 * @param string $selected The current selected value.
@@ -1010,8 +1045,8 @@ class CiviCRM_Profile_Sync_BP_xProfile {
 	 *
 	 * @since 0.5
 	 *
-	 * @param object $children Found children for a field.
-	 * @param bool $for_editing Whether or not the field is for editing.
+	 * @param object $children Found children for a Field.
+	 * @param bool $for_editing Whether or not the Field is for editing.
 	 * @param BP_XProfile_Field $field The xProfile Field object.
 	 */
 	public function get_children( $children, $for_editing, $field ) {

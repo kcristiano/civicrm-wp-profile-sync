@@ -63,7 +63,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Event_Group extends acf_field {
 	 *
 	 * This must be populated in the class constructor because it is translatable.
 	 *
-	 * Multiple words, can include spaces, visible when selecting a field type.
+	 * Multiple words, can include spaces, visible when selecting a Field Type.
 	 *
 	 * @since 0.5
 	 * @access public
@@ -87,7 +87,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Event_Group extends acf_field {
 	/**
 	 * Field Type defaults.
 	 *
-	 * Array of default settings which are merged into the field object.
+	 * Array of default settings which are merged into the Field object.
 	 * These are used later in settings.
 	 *
 	 * @since 0.5
@@ -231,8 +231,8 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Event_Group extends acf_field {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $field The field array holding all the field options.
-	 * @return array $field The modified field data.
+	 * @param array $field The Field array holding all the Field options.
+	 * @return array $field The modified Field data.
 	 */
 	public function load_field( $field ) {
 
@@ -242,7 +242,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Event_Group extends acf_field {
 		// Maybe append to Field.
 		if ( ! empty( $field['sub_fields'] ) ) {
 
-			// Validate field first.
+			// Validate Field first.
 			foreach ( $field['sub_fields'] as $sub_field ) {
 				$sub_fields[] = acf_validate_field( $sub_field );
 			}
@@ -264,8 +264,8 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Event_Group extends acf_field {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $field The field array holding all the field options.
-	 * @return array $field The modified field data.
+	 * @param array $field The Field array holding all the Field options.
+	 * @return array $field The modified Field data.
 	 */
 	public function update_field( $field ) {
 
@@ -287,7 +287,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Event_Group extends acf_field {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $field The field array holding all the field options.
+	 * @param array $field The Field array holding all the Field options.
 	 * @return array $subfields The subfield array.
 	 */
 	public function modify_field( $field ) {
@@ -372,7 +372,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Event_Group extends acf_field {
 	 */
 	public function get_subfield_definitions() {
 
-		// Define "Event ID" field.
+		// Define "Event ID" Field.
 		$event_id = [
 			'key' => 'field_' . $this->acf_slug . '_event_id',
 			'label' => __ ( 'Event ID', 'civicrm-wp-profile-sync' ),
@@ -382,7 +382,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Event_Group extends acf_field {
 			'required' => 0,
 		];
 
-		// Define "Event Type" field.
+		// Define "Event Type" Field.
 		$event_type = [
 			'key' => 'field_' . $this->acf_slug . '_event_type',
 			'label' => __ ( 'Event Type', 'civicrm-wp-profile-sync' ),
@@ -493,7 +493,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Event_Group extends acf_field {
 	 *
 	 * @param bool $valid The validation status.
 	 * @param mixed $value The $_POST value.
-	 * @param array $field The field array holding all the field options.
+	 * @param array $field The Field array holding all the Field options.
 	 * @param string $input The corresponding input name for $_POST value.
 	 * @return string|bool $valid False if not valid, or string for error message.
 	 */

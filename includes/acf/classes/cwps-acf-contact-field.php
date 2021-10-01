@@ -302,7 +302,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 	 * @param array $name The Contact Field name.
 	 * @param string $selector The ACF Field selector.
 	 * @param mixed $post_id The ACF "Post ID".
-	 * @return mixed $value The formatted field value.
+	 * @return mixed $value The formatted Field value.
 	 */
 	public function value_get_for_acf( $value, $name, $selector, $post_id ) {
 
@@ -337,7 +337,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 			case 'date_picker' :
 			case 'date_time_picker' :
 
-				// Get field setting.
+				// Get Field setting.
 				$acf_setting = get_field_object( $selector, $post_id );
 
 				// Date Picker test.
@@ -447,7 +447,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 	 * @since 0.4
 	 *
 	 * @param string $name The name of the Contact Field.
-	 * @return array $options The array of field options.
+	 * @return array $options The array of Field options.
 	 */
 	public function options_get( $name ) {
 
@@ -527,10 +527,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 		// Init return.
 		$contact_fields = [];
 
-		// Get field group for this field's parent.
+		// Get Field Group for this Field's parent.
 		$field_group = $this->acf_loader->acf->field_group->get_for_field( $field );
 
-		// Bail if there's no field group.
+		// Bail if there's no Field Group.
 		if ( empty( $field_group ) ) {
 			return $contact_fields;
 		}
@@ -548,7 +548,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 				// Get Contact Type hierarchy.
 				$contact_types = $this->plugin->civicrm->contact_type->hierarchy_get_by_id( $contact_type_id );
 
-				// Get public fields of this type.
+				// Get public Fields of this type.
 				$contact_fields_for_type = $this->data_get( $contact_types['type'], $field['type'], 'public' );
 
 				// Merge with return array.
@@ -562,7 +562,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 		if ( 'select' === $field['type'] ) {
 			if ( $field['multiple'] == 1 || ( $field['ui'] == 1 && $field['ajax'] == 1 ) ) {
 
-				// Re-build fields without them.
+				// Re-build Fields without them.
 				$filtered_fields = [];
 				foreach ( $contact_fields as $contact_field ) {
 					if ( $contact_field['name'] == 'prefix_id' || $contact_field['name'] == 'suffix_id' ) {
@@ -608,8 +608,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 	 *
 	 * @param array $contact_type The Contact Type to query.
 	 * @param string $field_type The type of ACF Field.
-	 * @param string $filter The token by which to filter the array of fields.
-	 * @return array $fields The array of field names.
+	 * @param string $filter The token by which to filter the array of Fields.
+	 * @return array $fields The array of Field names.
 	 */
 	public function data_get( $contact_type = 'Individual', $field_type = '', $filter = 'none' ) {
 
@@ -650,10 +650,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 			// Check public filter.
 			} elseif ( $filter == 'public' ) {
 
-				// Init fields array.
+				// Init Fields array.
 				$contact_fields = [];
 
-				// Check against different field sets per type.
+				// Check against different Field sets per type.
 				if ( $contact_type == 'Individual' ) {
 					$contact_fields = $this->contact_fields_individual;
 				}
@@ -664,7 +664,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 					$contact_fields = $this->contact_fields_household;
 				}
 
-				// Combine these with common fields.
+				// Combine these with common Fields.
 				$contact_fields = array_merge( $contact_fields, $this->contact_fields_common );
 
 				// Skip all but those defined in our Contact Fields arrays.
@@ -703,8 +703,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 	 *
 	 * @since 0.4
 	 *
-	 * @param string $filter The token by which to filter the array of fields.
-	 * @return array $fields The array of field names.
+	 * @param string $filter The token by which to filter the array of Fields.
+	 * @return array $fields The array of Field names.
 	 */
 	public function data_get_filtered( $filter = 'none' ) {
 
@@ -794,14 +794,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 	 * @since 0.4
 	 *
 	 * @param array $types The Contact Type(s) to query.
-	 * @return array $fields The array of field names.
+	 * @return array $fields The array of Field names.
 	 */
 	public function get_public( $types = [ 'Individual' ] ) {
 
 		// Init return.
 		$contact_fields = [];
 
-		// Check against different field sets per type.
+		// Check against different Field sets per type.
 		if ( in_array( 'Individual', $types ) ) {
 			$contact_fields = $this->contact_fields_individual;
 		}
@@ -812,7 +812,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 			$contact_fields = $this->contact_fields_household;
 		}
 
-		// Combine these with common fields.
+		// Combine these with common Fields.
 		$contact_fields = array_merge( $contact_fields, $this->contact_fields_common );
 
 		// --<
@@ -851,14 +851,14 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 	 *
 	 * @param array $types The Contact Type(s) to query.
 	 * @param string $type The type of ACF Field.
-	 * @return array $fields The array of field names.
+	 * @return array $fields The array of Field names.
 	 */
 	public function get_by_acf_type( $types = [ 'Individual' ], $type = '' ) {
 
 		// Init return.
 		$contact_fields = [];
 
-		// Get the public fields defined in this class.
+		// Get the public Fields defined in this class.
 		$public_fields = $this->get_public( $types );
 
 		// Skip all but those mapped to the type of ACF Field.
@@ -881,7 +881,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 	 * @since 0.4
 	 *
 	 * @param string $name The name of the Contact Field.
-	 * @return array $fields The array of field names.
+	 * @return array $fields The array of Field names.
 	 */
 	public function get_acf_type( $name = '' ) {
 
@@ -1178,7 +1178,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact_Field {
 	 * @param array $name The Contact Field name.
 	 * @param string $selector The ACF Field selector.
 	 * @param mixed $post_id The ACF "Post ID".
-	 * @return mixed $value The formatted field value.
+	 * @return mixed $value The formatted Field value.
 	 */
 	public function image_value_get_for_acf( $value, $name, $selector, $post_id ) {
 

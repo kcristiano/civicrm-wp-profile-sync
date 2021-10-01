@@ -74,7 +74,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_Field extends acf_field {
 	 *
 	 * This must be populated in the class constructor because it is translatable.
 	 *
-	 * Multiple words, can include spaces, visible when selecting a field type.
+	 * Multiple words, can include spaces, visible when selecting a Field Type.
 	 *
 	 * @since 0.4
 	 * @access public
@@ -98,7 +98,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_Field extends acf_field {
 	/**
 	 * Field Type defaults.
 	 *
-	 * Array of default settings which are merged into the field object.
+	 * Array of default settings which are merged into the Field object.
 	 * These are used later in settings.
 	 *
 	 * @since 0.4
@@ -198,7 +198,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_Field extends acf_field {
 			return $filtered_fields;
 		}
 
-		// Filter fields to include only "Contact Reference".
+		// Filter Fields to include only "Contact Reference".
 		foreach ( $custom_fields as $custom_group_name => $custom_group ) {
 			foreach ( $custom_group as $custom_field ) {
 				if ( ! empty( $custom_field['data_type'] ) && $custom_field['data_type'] == 'ContactReference' ) {
@@ -327,7 +327,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_Field extends acf_field {
 			return $response;
 		}
 
- 		// Load field.
+ 		// Load Field.
 		$field = acf_get_field( $options['field_key'] );
 		if ( ! $field ) {
 			return $response;

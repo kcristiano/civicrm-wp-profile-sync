@@ -70,7 +70,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Phone extends CiviCRM_Profile_Sync_ACF_Ci
 	public $shortcode;
 
 	/**
-	 * "CiviCRM Field" field value prefix in the ACF Field data.
+	 * "CiviCRM Field" Field value prefix in the ACF Field data.
 	 *
 	 * This distinguishes Phone Fields from Custom Fields.
 	 *
@@ -259,15 +259,15 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Phone extends CiviCRM_Profile_Sync_ACF_Ci
 		// Init success.
 		$success = true;
 
-		// Bail if we have no field data to save.
+		// Bail if we have no Field data to save.
 		if ( empty( $args['fields'] ) ) {
 			return $success;
 		}
 
-		// Loop through the field data.
+		// Loop through the Field data.
 		foreach ( $args['fields'] as $field => $value ) {
 
-			// Get the field settings.
+			// Get the Field settings.
 			$settings = get_field_object( $field, $args['post_id'] );
 
 			// Maybe update a Phone Record.
@@ -632,7 +632,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Phone extends CiviCRM_Profile_Sync_ACF_Ci
 
 		// Convert CiviCRM data to ACF data.
 		$phone_data['field_phone_number'] = trim( $value->phone );
-		$phone_data['field_phone_extension'] = $this->civicrm->denullify( $phone_ext );
+		$phone_data['field_phone_extension'] = $this->plugin->civicrm->denullify( $phone_ext );
 		$phone_data['field_phone_location'] = (int) $value->location_type_id;
 		$phone_data['field_phone_type'] = (int) $value->phone_type_id;
 		$phone_data['field_phone_primary'] = empty( $value->is_primary ) ? '0' : '1';
@@ -937,10 +937,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Phone extends CiviCRM_Profile_Sync_ACF_Ci
 		// Init return.
 		$location_types = [];
 
-		// Get field group for this field's parent.
+		// Get Field Group for this Field's parent.
 		$field_group = $this->acf_loader->acf->field_group->get_for_field( $field );
 
-		// Bail if there's no field group.
+		// Bail if there's no Field Group.
 		if ( empty( $field_group ) ) {
 			return $location_types;
 		}
@@ -982,10 +982,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Phone extends CiviCRM_Profile_Sync_ACF_Ci
 		// Init return.
 		$phone_types = [];
 
-		// Get field group for this field's parent.
+		// Get Field Group for this Field's parent.
 		$field_group = $this->acf_loader->acf->field_group->get_for_field( $field );
 
-		// Bail if there's no field group.
+		// Bail if there's no Field Group.
 		if ( empty( $field_group ) ) {
 			return $phone_types;
 		}
@@ -1093,8 +1093,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Phone extends CiviCRM_Profile_Sync_ACF_Ci
 	 *
 	 * @since 0.5
 	 *
-	 * @param string $filter The token by which to filter the array of fields.
-	 * @return array $fields The array of field names.
+	 * @param string $filter The token by which to filter the array of Fields.
+	 * @return array $fields The array of Field names.
 	 */
 	public function civicrm_fields_get( $filter = 'none' ) {
 
@@ -1163,7 +1163,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Phone extends CiviCRM_Profile_Sync_ACF_Ci
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $field The existing field data array.
+	 * @param array $field The existing Field data array.
 	 * @return string|bool $phone_field_name The name of the Phone Field, or false if none.
 	 */
 	public function phone_field_name_get( $field ) {
@@ -1220,7 +1220,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Phone extends CiviCRM_Profile_Sync_ACF_Ci
 			return $choices;
 		}
 
-		// Get the public fields on the Entity for this Field Type.
+		// Get the public Fields on the Entity for this Field Type.
 		$public_fields = $this->civicrm_fields_get( 'public' );
 		$fields_for_entity = [];
 		foreach ( $public_fields as $key => $value ) {
@@ -1303,7 +1303,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Phone extends CiviCRM_Profile_Sync_ACF_Ci
 	 * @since 0.5
 	 *
 	 * @param string $name The name of the Phone Field.
-	 * @return array $options The array of field options.
+	 * @return array $options The array of Field options.
 	 */
 	public function options_get( $name ) {
 

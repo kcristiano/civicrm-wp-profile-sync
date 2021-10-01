@@ -50,7 +50,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address {
 	public $civicrm;
 
 	/**
-	 * "CiviCRM Field" field value prefix in the ACF Field data.
+	 * "CiviCRM Field" Field value prefix in the ACF Field data.
 	 *
 	 * This distinguishes Address Fields from Custom Fields.
 	 *
@@ -168,8 +168,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address {
 	 *
 	 * @since 0.5
 	 *
-	 * @param string $filter The token by which to filter the array of fields.
-	 * @return array $fields The array of field names.
+	 * @param string $filter The token by which to filter the array of Fields.
+	 * @return array $fields The array of Field names.
 	 */
 	public function civicrm_fields_get( $filter = 'none' ) {
 
@@ -238,7 +238,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $field The existing field data array.
+	 * @param array $field The existing Field data array.
 	 * @return string|bool $address_field_name The name of the Address Field, or false if none.
 	 */
 	public function address_field_name_get( $field ) {
@@ -292,7 +292,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address {
 			return $choices;
 		}
 
-		// Get the public fields on the Entity for this Field Type.
+		// Get the public Fields on the Entity for this Field Type.
 		$public_fields = $this->civicrm_fields_get( 'public' );
 		$fields_for_entity = [];
 		foreach ( $public_fields as $key => $value ) {
@@ -427,7 +427,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Address {
 			return $valid;
 		}
 
-		// Validate depending on the field name.
+		// Validate depending on the Field name.
 		switch ( $address_field_name ) {
 
 			case 'duration' :

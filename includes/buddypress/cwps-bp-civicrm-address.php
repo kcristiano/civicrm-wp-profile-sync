@@ -59,7 +59,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 	public $xprofile;
 
 	/**
-	 * "CiviCRM Field" field value prefix in the BuddyPress Field data.
+	 * "CiviCRM Field" Field value prefix in the BuddyPress Field data.
 	 *
 	 * This distinguishes Address Fields from Custom Fields.
 	 *
@@ -140,6 +140,9 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 	 */
 	public function register_hooks() {
 
+		// Always register Mapper hooks.
+		$this->register_mapper_hooks();
+
 		// Listen for queries from the BuddyPress Field class.
 		add_filter( 'cwps/bp/field/query_setting_choices', [ $this, 'query_setting_choices' ], 20, 4 );
 
@@ -151,8 +154,308 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 		// Append "True/False" mappings to the "Checkbox" xProfile Field Type.
 		add_filter( 'cwps/bp/civicrm/address_field/get_for_bp_field', [ $this, 'true_false_fields_append' ], 10, 2 );
 
+		// Determine if a "Checkbox" Field is a "True/False" Field.
+		add_filter( 'cwps/bp/xprofile/value/checkbox/query_type', [ $this, 'true_false_field_query' ], 10, 2 );
+
 		// Listen for when BuddyPress Profile Fields have been saved.
-		add_filter( 'cwps/bp/contact/bp_fields_saved', [ $this, 'bp_fields_saved' ], 10 );
+		add_filter( 'cwps/bp/contact/bp_fields_edited', [ $this, 'bp_fields_edited' ], 10 );
+
+		// Listen for queries from the Custom Field class.
+		add_filter( 'cwps/bp/query_user_id', [ $this, 'query_user_id' ], 10, 2 );
+
+	}
+
+
+
+	/**
+	 * Register callbacks for Mapper events.
+	 *
+	 * @since 0.4
+	 */
+	public function register_mapper_hooks() {
+
+		// Listen for events from our Mapper that require Address updates.
+		add_action( 'cwps/mapper/address/created', [ $this, 'address_edited' ], 10 );
+		add_action( 'cwps/mapper/address/edited', [ $this, 'address_edited' ], 10 );
+		//add_action( 'cwps/mapper/address/delete/pre', [ $this, 'address_pre_delete' ], 10 );
+		//add_action( 'cwps/mapper/address/deleted', [ $this, 'address_deleted' ], 10 );
+
+	}
+
+
+
+	/**
+	 * Unregister callbacks for Mapper events.
+	 *
+	 * @since 0.4
+	 */
+	public function unregister_mapper_hooks() {
+
+		// Remove all Mapper listeners.
+		remove_action( 'cwps/mapper/address/created', [ $this, 'address_edited' ], 10 );
+		remove_action( 'cwps/mapper/address/edited', [ $this, 'address_edited' ], 10 );
+		//remove_action( 'cwps/mapper/address/delete/pre', [ $this, 'address_pre_delete' ], 10 );
+		//remove_action( 'cwps/mapper/address/deleted', [ $this, 'address_deleted' ], 10 );
+
+	}
+
+
+
+	// -------------------------------------------------------------------------
+
+
+
+	/**
+	 * Intercept when a CiviCRM Address Record has been updated.
+	 *
+	 * @since 0.5
+	 *
+	 * @param array $args The array of CiviCRM params.
+	 */
+	public function address_edited( $args ) {
+
+		// Bail if BuddyPress is not set to sync to WordPress.
+		if ( bp_disable_profile_sync() ) {
+			return;
+		}
+
+		// Grab the Address Record data.
+		$address = $args['objectRef'];
+
+		// Bail if this is not a Contact's Address Record.
+		if ( empty( $address->contact_id ) ) {
+			return;
+		}
+
+		// Process the Address Record.
+		$this->address_process( $address, $args );
+
+		// TODO: Handle shared Address.
+		return;
+
+		// If this address is a "Master Address" then it will return "Shared Addresses".
+		$addresses_shared = $this->plugin->civicrm->address->addresses_shared_get_by_id( $address->id );
+
+		// Bail if there are none.
+		if ( empty( $addresses_shared ) ) {
+			return;
+		}
+
+		// Update all of them.
+		foreach ( $addresses_shared as $address_shared ) {
+			$this->address_process( $address_shared, $args );
+		}
+
+	}
+
+
+
+	/**
+	 * Process a CiviCRM Address Record.
+	 *
+	 * @since 0.5
+	 *
+	 * @param object $address The CiviCRM Address Record object.
+	 * @param array $args The array of CiviCRM params.
+	 */
+	public function address_process( $address, $args ) {
+
+		// Bail if we can't find a User ID.
+		$user_id = $this->plugin->mapper->ufmatch->user_id_get_by_contact_id( $address->contact_id );
+		if ( $user_id === false ) {
+			return $user_id;
+		}
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'args' => $args,
+			'user_id' => $user_id,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		// Get the BuddyPress Fields for this User.
+		$bp_fields = $this->xprofile->fields_get_for_user( $user_id );
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'bp_fields' => $bp_fields,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		// Filter out Fields not mapped to a CiviCRM Address Field.
+		$bp_fields_mapped = [];
+		foreach ( $bp_fields as $bp_field ) {
+
+			// Only Fields for this Entity please.
+			if ( $bp_field['field_meta']['entity_type'] !== 'Address' ) {
+				continue;
+			}
+
+			// Only "Address" Fields with the matching Location Type.
+			$location_type_id = (int) $bp_field['field_meta']['entity_data']['location_type_id'];
+			if ( $address->location_type_id != $location_type_id ) {
+				continue;
+			}
+
+			// Only "Address" Fields please.
+			$bp_field_mapping = $bp_field['field_meta']['value'];
+			$field_name = $this->name_get( $bp_field_mapping );
+			if ( empty( $field_name ) ) {
+				continue;
+			}
+
+			// Save the Field name for convenience.
+			$bp_field['civicrm_field'] = $field_name;
+
+			// Okay, add it.
+			$bp_fields_mapped[] = $bp_field;
+
+		}
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'bp_fields_mapped' => $bp_fields_mapped,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		// Bail if we don't have any left.
+		if ( empty( $bp_fields_mapped ) ) {
+			return;
+		}
+
+		// Let's look at each BuddyPress Field in turn.
+		foreach ( $bp_fields_mapped as $bp_field ) {
+
+			// Get the CiviCRM Field name.
+			$civicrm_field = $bp_field['civicrm_field'];
+
+			// Does the mapped Address Field exist?
+			if ( ! isset( $address->$civicrm_field ) ) {
+				continue;
+			}
+
+			// Modify value for BuddyPress prior to update.
+			$value = $this->value_get_for_bp( $address->$civicrm_field, $civicrm_field, $bp_field );
+
+			// Okay, go ahead and save the value to the xProfile Field.
+			$result = xprofile_set_field_data( $bp_field['field_id'], $user_id, $value );
+
+			/*
+			$e = new \Exception();
+			$trace = $e->getTraceAsString();
+			error_log( print_r( [
+				'method' => __METHOD__,
+				'value' => $value,
+				'result' => $result,
+				//'backtrace' => $trace,
+			], true ) );
+			*/
+
+		}
+
+		// Add the User ID to the params.
+		$args['user_id'] = $user_id;
+
+		/**
+		 * Broadcast that a set of BuddyPress Address Fields may have been edited.
+		 *
+		 * @since 0.5
+		 *
+		 * @param object $address The CiviCRM Address Record object.
+		 * @param array $args The array of CiviCRM params.
+		 */
+		do_action( 'cwps/bp/civicrm/address/updated', $address, $args );
+
+	}
+
+
+
+	/**
+	 * Get the value of a Address Field, formatted for BuddyPress.
+	 *
+	 * @since 0.5
+	 *
+	 * @param mixed $value The Address Field value.
+	 * @param array $name The Address Field name.
+	 * @param $params The array of Field params.
+	 * @return mixed $value The value formatted for BuddyPress.
+	 */
+	public function value_get_for_bp( $value, $name, $params ) {
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'value' => $value,
+			'name' => $name,
+			'params' => $params,
+			//'args' => $args,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		// Bail if value is (string) 'null' which CiviCRM uses for some reason.
+		if ( $value == 'null' || $value == 'NULL' ) {
+			return '';
+		}
+
+		// Get the BuddyPress Field Type for this Address Field.
+		$type = $this->get_bp_type( $name );
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'type' => $type,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		// Convert CiviCRM value to BuddyPress value by Field Type.
+		switch( $type ) {
+
+			// Used by "Primary" etc.
+			case 'true_false' :
+
+				// Clear the value when empty.
+				if ( empty( $value ) ) {
+					$value = null;
+				} else {
+					$value = 1;
+				}
+
+				break;
+
+			// Used by "Country", "State/Province" and "County".
+			case 'selectbox' :
+
+				// Convert if the value has the special CiviCRM array-like format.
+				if ( is_string( $value ) ) {
+					if ( false !== strpos( $value, CRM_Core_DAO::VALUE_SEPARATOR ) ) {
+						$value = CRM_Utils_Array::explodePadded( $value );
+					}
+				}
+
+				break;
+
+		}
+
+		// --<
+		return $value;
 
 	}
 
@@ -169,7 +472,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 	 *
 	 * @param array $args The array of BuddyPress and CiviCRM params.
 	 */
-	public function bp_fields_saved( $args ) {
+	public function bp_fields_edited( $args ) {
 
 		/*
 		$e = new \Exception();
@@ -288,21 +591,21 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 		], true ) );
 		*/
 
-		// Init data for fields.
+		// Init data for Fields.
 		$address_data = [];
 
 		// Handle the data for each Field.
 		foreach ( $field_data as $data ) {
 
 			// Get metadata for this xProfile Field.
-			$args = $data['meta'];
-			if ( empty( $args ) ) {
+			$meta = $data['meta'];
+			if ( empty( $meta ) ) {
 				continue;
 			}
 
 			// Get the CiviCRM Custom Field and Address Field.
-			$custom_field_id = $this->xprofile->custom_field->id_get( $args['value'] );
-			$address_field_name = $this->name_get( $args['value'] );
+			$custom_field_id = $this->xprofile->custom_field->id_get( $meta['value'] );
+			$address_field_name = $this->name_get( $meta['value'] );
 
 			// Do we have a synced Custom Field or Address Field?
 			if ( ! empty( $custom_field_id ) || ! empty( $address_field_name ) ) {
@@ -322,6 +625,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 
 				// Build args for value conversion.
 				$args = [
+					'entity_type' => $meta['entity_type'],
 					'custom_field_id' => $custom_field_id,
 					'address_field_name' => $address_field_name,
 				];
@@ -342,7 +646,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 				// Parse value by Field Type.
 				$value = $this->xprofile->value_get_for_civicrm( $data['value'], $data['field_type'], $args );
 
-				// Add it to the field data.
+				// Add it to the Field data.
 				$address_data[$code] = $value;
 
 			}
@@ -444,7 +748,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 		], true ) );
 		*/
 
-		// Get public fields of this type.
+		// Get public Fields of this type.
 		$address_fields = $this->data_get( $field_type, 'public' );
 
 		/*
@@ -484,8 +788,8 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 	 * @since 0.4
 	 *
 	 * @param string $field_type The type of ACF Field.
-	 * @param string $filter The token by which to filter the array of fields.
-	 * @return array $fields The array of field names.
+	 * @param string $filter The token by which to filter the array of Fields.
+	 * @return array $fields The array of Field names.
 	 */
 	public function data_get( $field_type = '', $filter = 'none' ) {
 
@@ -548,172 +852,6 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 		// Maybe add to pseudo-cache.
 		if ( ! isset( $pseudocache[$filter][$field_type] ) ) {
 			$pseudocache[$filter][$field_type] = $fields;
-		}
-
-		// --<
-		return $fields;
-
-	}
-
-
-
-	/**
-	 * Get the Fields for CiviCRM Addresses.
-	 *
-	 * @since 0.4
-	 *
-	 * @param string $filter The token by which to filter the array of fields.
-	 * @return array $fields The array of field names.
-	 */
-	public function data_get_filtered( $filter = 'none' ) {
-
-		// Only do this once per filter.
-		static $pseudocache;
-		if ( isset( $pseudocache[$filter] ) ) {
-			return $pseudocache[$filter];
-		}
-
-		// Init return.
-		$fields = [];
-
-		// Try and init CiviCRM.
-		if ( ! $this->civicrm->is_initialised() ) {
-			return $fields;
-		}
-
-		// Construct params.
-		$params = [
-			'version' => 3,
-			'options' => [
-				'limit' => 0, // No limit.
-			],
-		];
-
-		// Call the API.
-		$result = civicrm_api( 'Address', 'getfields', $params );
-
-		// Override return if we get some.
-		if ( $result['is_error'] == 0 && ! empty( $result['values'] ) ) {
-
-			// Check for no filter.
-			if ( $filter == 'none' ) {
-
-				// Grab all of them.
-				$fields = $result['values'];
-
-			// Check public filter.
-			} elseif ( $filter == 'public' ) {
-
-				// Skip all but those defined in our Address Fields array.
-				foreach ( $result['values'] as $key => $value ) {
-					if ( array_key_exists( $value['name'], $this->address_fields ) ) {
-						$fields[] = $value;
-					}
-				}
-
-			}
-
-		}
-
-		// Maybe add to pseudo-cache.
-		if ( ! isset( $pseudocache[$filter] ) ) {
-			$pseudocache[$filter] = $fields;
-		}
-
-		// --<
-		return $fields;
-
-	}
-
-
-
-	/**
-	 * Get the public Fields for CiviCRM Addresses.
-	 *
-	 * @since 0.5
-	 *
-	 * @return array $public_fields The array of CiviCRM Fields.
-	 */
-	public function get_public_fields() {
-
-		// Init return.
-		$public_fields = [];
-
-		// Get the public Fields for CiviCRM Addresses.
-		$public_fields = $this->data_get_filtered( 'public' );
-
-		// --<
-		return $public_fields;
-
-	}
-
-
-
-	// -------------------------------------------------------------------------
-
-
-
-	/**
-	 * Gets the CiviCRM Address Fields.
-	 *
-	 * @since 0.5
-	 *
-	 * @param string $filter The token by which to filter the array of fields.
-	 * @return array $fields The array of field names.
-	 */
-	public function civicrm_fields_get( $filter = 'none' ) {
-
-		// Only do this once per Field Type and filter.
-		static $pseudocache;
-		if ( isset( $pseudocache[$filter] ) ) {
-			return $pseudocache[$filter];
-		}
-
-		// Init return.
-		$fields = [];
-
-		// Try and init CiviCRM.
-		if ( ! $this->civicrm->is_initialised() ) {
-			return $fields;
-		}
-
-		// Construct params.
-		$params = [
-			'version' => 3,
-			'options' => [
-				'limit' => 0, // No limit.
-			],
-		];
-
-		// Call the API.
-		$result = civicrm_api( 'Address', 'getfields', $params );
-
-		// Override return if we get some.
-		if ( $result['is_error'] == 0 && ! empty( $result['values'] ) ) {
-
-			// Check for no filter.
-			if ( $filter == 'none' ) {
-
-				// Grab all of them.
-				$fields = $result['values'];
-
-			// Check public filter.
-			} elseif ( $filter == 'public' ) {
-
-				// Skip all but those defined in our public Address Fields array.
-				foreach ( $result['values'] as $key => $value ) {
-					if ( array_key_exists( $value['name'], $this->address_fields ) ) {
-						$fields[] = $value;
-					}
-				}
-
-			}
-
-		}
-
-		// Maybe add to pseudo-cache.
-		if ( ! isset( $pseudocache[$filter] ) ) {
-			$pseudocache[$filter] = $fields;
 		}
 
 		// --<
@@ -824,6 +962,142 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 			// Only get the list of Countries if some are chosen?
 			$options = CRM_Core_PseudoConstant::country();
 		}
+
+		// --<
+		return $options;
+
+	}
+
+
+
+	// -------------------------------------------------------------------------
+
+
+
+	/**
+	 * Listen for queries from the Custom Field class.
+	 *
+	 * This method responds with a User ID if it detects that the set of Custom
+	 * Fields maps to an Address.
+	 *
+	 * @since 0.5
+	 *
+	 * @param array|bool $user_id The existing User ID.
+	 * @param array $args The array of CiviCRM Custom Fields params.
+	 * @return array|bool $user_id The User ID, or false if not mapped.
+	 */
+	public function query_user_id( $user_id, $args ) {
+
+		// Init Address ID.
+		$address_id = false;
+
+		// Let's tease out the context from the Custom Field data.
+		foreach ( $args['custom_fields'] as $field ) {
+
+			// Skip if it is not attached to an Address.
+			if ( $field['entity_table'] != 'civicrm_address' ) {
+				continue;
+			}
+
+			// Grab the Address ID.
+			$address_id = (int) $field['entity_id'];
+
+			// We can bail now that we know.
+			break;
+
+		}
+
+		// Bail if there's no Address ID.
+		if ( $address_id === false ) {
+			return $user_id;
+		}
+
+		// Grab Address.
+		$address = $this->plugin->civicrm->address->address_get_by_id( $address_id );
+		if ( $address === false ) {
+			return $user_id;
+		}
+
+		// Bail if this Address does not have a Contact ID.
+		if ( empty( $address->contact_id ) ) {
+			return $user_id;
+		}
+
+		// Bail if this Contact doesn't have a User ID.
+		$user_id = $this->plugin->mapper->ufmatch->user_id_get_by_contact_id( $address->contact_id );
+		if ( $user_id === false ) {
+			return $user_id;
+		}
+
+		// --<
+		return $user_id;
+
+	}
+
+
+
+	// -------------------------------------------------------------------------
+
+
+
+	/**
+	 * Modify the Options of a BuddyPress "Select" Field.
+	 *
+	 * @since 0.5
+	 *
+	 * @param array $options The initially empty array to be populated.
+	 * @param array $field_type The type of xProfile Field being saved.
+	 * @param array $args The array of CiviCRM mapping data.
+	 * @return array $options The possibly populated array of Options.
+	 */
+	public function select_settings_modify( $options, $field_type, $args ) {
+
+		// Bail early if not our Field Type.
+		if ( 'selectbox' !== $field_type ) {
+			return $options;
+		}
+
+		// Get the mapped Field name.
+		$field_name = $this->name_get( $args['value'] );
+		if ( empty( $field_name ) ) {
+			return $options;
+		}
+
+		// Get keyed array of options for this Field.
+		$options = $this->options_get( $field_name );
+
+		// --<
+		return $options;
+
+	}
+
+
+
+	/**
+	 * Modify the Options of a BuddyPress "Checkbox" Field.
+	 *
+	 * @since 0.5
+	 *
+	 * @param array $options The initially empty array to be populated.
+	 * @param array $field_type The type of xProfile Field being saved.
+	 * @param array $args The array of CiviCRM mapping data.
+	 * @return array $options The possibly populated array of Options.
+	 */
+	public function checkbox_settings_modify( $options, $field_type, $args ) {
+
+		// Bail early if not our Field Type.
+		if ( 'checkbox' !== $field_type ) {
+			return $options;
+		}
+
+		// Get the mapped Field name.
+		$field_name = $this->name_get( $args['value'] );
+		if ( empty( $field_name ) ) {
+			return $options;
+		}
+
+		// Get keyed array of options for this Address Field.
+		$options = $this->options_get( $field_name );
 
 		// --<
 		return $options;
@@ -957,7 +1231,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 		], true ) );
 		*/
 
-		// Get public fields of this type.
+		// Get public Fields of this type.
 		$true_false_fields = $this->data_get( 'true_false', 'public' );
 		if ( empty( $true_false_fields ) ) {
 			return $address_fields;
@@ -993,71 +1267,46 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Address {
 
 
 
-	// -------------------------------------------------------------------------
-
-
-
 	/**
-	 * Modify the Options of a BuddyPress "Select" Field.
+	 * Checks if a "Checkbox" Field is a "True/False" Field.
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $options The initially empty array to be populated.
-	 * @param array $field_type The type of xProfile Field being saved.
-	 * @param array $args The array of CiviCRM mapping data.
-	 * @return array $options The possibly populated array of Options.
+	 * @param bool $is_true_false True if "Checkbox" is a "True/False" Field. False by default.
+	 * @param array $args The array of arguments.
+	 * @return bool $is_true_false True if "Checkbox" is a "True/False" Field. False by default.
 	 */
-	public function select_settings_modify( $options, $field_type, $args ) {
+	public function true_false_field_query( $is_true_false, $args ) {
 
-		// Bail early if not our Field Type.
-		if ( 'selectbox' !== $field_type ) {
-			return $options;
+		// Bail early if not the "Address" Entity Type.
+		if ( 'Address' !== $args['entity_type'] ) {
+			return $is_true_false;
 		}
 
-		// Get the mapped Field name.
-		$field_name = $this->name_get( $args['value'] );
-		if ( empty( $field_name ) ) {
-			return $options;
+		// Bail if not an "Address Field".
+		if ( empty( $args['address_field_name'] ) ) {
+			return $is_true_false;
 		}
 
-		// Get keyed array of options for this Field.
-		$options = $this->options_get( $field_name );
+		// Check if this is a "True/False" Field Type.
+		$civicrm_field_type = $this->get_bp_type( $args['address_field_name'] );
+		if ( $civicrm_field_type === 'true_false' ) {
+			$is_true_false = true;
+		}
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'is_true_false' => $is_true_false,
+			'args' => $args,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
 
 		// --<
-		return $options;
-
-	}
-
-
-
-	/**
-	 * Modify the Options of a BuddyPress "Checkbox" Field.
-	 *
-	 * @since 0.5
-	 *
-	 * @param array $options The initially empty array to be populated.
-	 * @param array $field_type The type of xProfile Field being saved.
-	 * @param array $args The array of CiviCRM mapping data.
-	 * @return array $options The possibly populated array of Options.
-	 */
-	public function checkbox_settings_modify( $options, $field_type, $args ) {
-
-		// Bail early if not our Field Type.
-		if ( 'checkbox' !== $field_type ) {
-			return $options;
-		}
-
-		// Get the mapped Field name.
-		$field_name = $this->name_get( $args['value'] );
-		if ( empty( $field_name ) ) {
-			return $options;
-		}
-
-		// Get keyed array of options for this Address Field.
-		$options = $this->options_get( $field_name );
-
-		// --<
-		return $options;
+		return $is_true_false;
 
 	}
 

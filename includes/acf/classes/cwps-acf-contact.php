@@ -61,7 +61,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 	public $identifier = 'contact';
 
 	/**
-	 * "CiviCRM Field" field value prefix in the ACF Field data.
+	 * "CiviCRM Field" Field value prefix in the ACF Field data.
 	 *
 	 * This distinguishes Contact Fields from Custom Fields.
 	 *
@@ -323,10 +323,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		$originating_entity = $this->acf_loader->mapper->entity_get();
 
 		/*
-		 * Get existing field values.
+		 * Get existing Field values.
 		 *
 		 * These are actually the *new* values because we are hooking in *after*
-		 * the fields have been saved.
+		 * the Fields have been saved.
 		 */
 		$fields = get_fields( $post->ID );
 
@@ -383,7 +383,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		/**
 		 * Filter the "Handled Fields" array.
 		 *
-		 * Classes in this plugin add the fields they handle via this filter.
+		 * Classes in this plugin add the Fields they handle via this filter.
 		 *
 		 * @since 0.4
 		 *
@@ -1034,7 +1034,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 			unset( $contact_data['contact_sub_type'] );
 		}
 
-		// Set mandatory fields for Contacts depending on their Contact Type.
+		// Set mandatory Fields for Contacts depending on their Contact Type.
 		if ( $contact_data['contact_type'] == 'Organization' ) {
 			$contact_data['organization_name'] = $contact_data['display_name'];
 		}
@@ -1061,18 +1061,18 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		 * The question, therefore, is how to manage the sync between the WordPress
 		 * "post_title" and the CiviCRM Contact "display_name"...
 		 *
-		 * When there are mapped ACF fields for "first_name" and "last_name", this
+		 * When there are mapped ACF Fields for "first_name" and "last_name", this
 		 * becomes less of a problem, though it's not clear how to populate these
-		 * fields for a Contact with just one name that is not a Contact Type which
+		 * Fields for a Contact with just one name that is not a Contact Type which
 		 * extends "Organisation" or "Household" (a dog, for example).
 		 *
 		 * Let's take the example of a dog called "Rover":
 		 *
 		 * - The WordPress "post_title" would be "Rover".
 		 * - The Contact "display_name" should be "Rover".
-		 * - The CiviCRM API requires the "first_name" and "last_name" fields.
+		 * - The CiviCRM API requires the "first_name" and "last_name" Fields.
 		 * - The CiviCRM API does not update the "display_name" directly.
-		 * - There are no "first_name" and "last_name" ACF fields.
+		 * - There are no "first_name" and "last_name" ACF Fields.
 		 *
 		 * In this situation, there is no obvious way of configuring this in either
 		 * the WordPress or CiviCRM UIs. WordPress has no UI for Post Types (except
@@ -1081,7 +1081,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		 * these options are configurable.
 		 *
 		 * At present, I can't think of other situations where there's a mismatch
-		 * between these fields, so perhaps a plugin Settings Page might be needed
+		 * between these Fields, so perhaps a plugin Settings Page might be needed
 		 * with a checkbox per Post Type selecting between:
 		 *
 		 * - Sync where the Contact has just one name
@@ -1118,9 +1118,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		$contact_data = $this->prepare_from_post( $post );
 
 		/*
-		 * Should we save the Post ID in the "External ID" field?
+		 * Should we save the Post ID in the "External ID" Field?
 		 *
-		 * The problem with this is that people actually use the field!
+		 * The problem with this is that people actually use the Field!
 		 *
 		 * Reverse look-ups (i.e. from CiviCRM) can be done by querying Posts
 		 * with a meta query.
@@ -1195,10 +1195,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 	 */
 	public function prepare_from_fields( $fields, $post_id = null ) {
 
-		// Init data for fields.
+		// Init data for Fields.
 		$contact_data = [];
 
-		// Bail if we have no field data to save.
+		// Bail if we have no Field data to save.
 		if ( empty( $fields ) ) {
 			return $contact_data;
 		}
@@ -1206,10 +1206,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		// Get all Fields that are handled separately.
 		$fields_handled = $this->fields_handled_get();
 
-		// Loop through the field data.
+		// Loop through the Field data.
 		foreach ( $fields as $selector => $value ) {
 
-			// Get the field settings.
+			// Get the Field settings.
 			$settings = get_field_object( $selector, $post_id );
 
 			// Get the CiviCRM Custom Field and Contact Field.
@@ -1243,10 +1243,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 					'contact_field_name' => $contact_field_name,
 				];
 
-				// Parse value by field type.
+				// Parse value by Field Type.
 				$value = $this->acf_loader->acf->field->value_get_for_civicrm( $value, $settings['type'], $settings, $args );
 
-				// Add it to the field data.
+				// Add it to the Field data.
 				$contact_data[$code] = $value;
 
 			}
@@ -1330,7 +1330,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 		 */
 		$choices = apply_filters( 'cwps/acf/contact/civicrm_field/choices', $choices );
 
-		// Define field.
+		// Define Field.
 		$field = [
 			'key' => $this->civicrm->acf_field_key_get(),
 			'label' => __( 'CiviCRM Field', 'civicrm-wp-profile-sync' ),
@@ -1360,7 +1360,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 	 *
 	 * @since 0.4
 	 *
-	 * @param array $field The existing field data array.
+	 * @param array $field The existing Field data array.
 	 * @return string|bool $contact_field_name The name of the Contact Field, or false if none.
 	 */
 	public function contact_field_name_get( $field ) {
@@ -1570,7 +1570,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 			// Get Contact Type hierarchy for this Entity ID.
 			$hierarchy = $this->plugin->civicrm->contact_type->hierarchy_get_by_id( $entity_id );
 
-			// Get the public fields on the Entity for this Field Type.
+			// Get the public Fields on the Entity for this Field Type.
 			$fields_for_entity = $this->civicrm->contact_field->data_get( $hierarchy['type'], $field['type'], 'public' );
 
 			// Get the Custom Fields for this Entity.
@@ -1645,7 +1645,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Contact {
 			// Get Contact Type hierarchy for this Entity ID.
 			$hierarchy = $this->plugin->civicrm->contact_type->hierarchy_get_by_id( $entity_id );
 
-			// Get the public fields on the Entity for this Field Type.
+			// Get the public Fields on the Entity for this Field Type.
 			$fields_for_entity = $this->civicrm->contact_field->data_get( $hierarchy['type'], $field['type'], 'public' );
 
 			// Get the Custom Fields for this Entity.

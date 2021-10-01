@@ -4,7 +4,7 @@
  *
  * All "core" callbacks are registered here - referring to the original purpose
  * of this plugin, namely to keep sync between the "core" WordPress User Profile
- * fields and "core" CiviCRM Contact fields:
+ * Fields and "core" CiviCRM Contact Fields:
  *
  * - "First Name"
  * - "Last Name"
@@ -233,24 +233,115 @@ class CiviCRM_WP_Profile_Sync_Mapper_Hooks_Core {
 			return;
 		}
 
+		// Register CiviCRM hooks by Entity.
+		$this->hooks_civicrm_contact_add();
+		$this->hooks_civicrm_email_add();
+		$this->hooks_civicrm_website_add();
+		$this->hooks_civicrm_phone_add();
+		$this->hooks_civicrm_address_add();
+		$this->hooks_civicrm_custom_add();
+
+	}
+
+
+
+	/**
+	 * Register CiviCRM Contact hooks.
+	 *
+	 * @since 0.5
+	 */
+	public function hooks_civicrm_contact_add() {
+
 		// Intercept Contact updates in CiviCRM.
 		//add_action( 'civicrm_pre', [ $this, 'contact_pre_create' ], 10, 4 );
 		add_action( 'civicrm_pre', [ $this, 'contact_pre_edit' ], 10, 4 );
 		//add_action( 'civicrm_post', [ $this, 'contact_created' ], 10, 4 );
 		add_action( 'civicrm_post', [ $this, 'contact_edited' ], 10, 4 );
 
+	}
+
+
+
+	/**
+	 * Register CiviCRM Email hooks.
+	 *
+	 * @since 0.5
+	 */
+	public function hooks_civicrm_email_add() {
+
 		// Intercept Email updates in CiviCRM.
 		add_action( 'civicrm_pre', [ $this, 'email_pre_edit' ], 10, 4 );
 		add_action( 'civicrm_post', [ $this, 'email_edited' ], 10, 4 );
+
+	}
+
+
+
+	/**
+	 * Register CiviCRM Website hooks.
+	 *
+	 * @since 0.5
+	 */
+	public function hooks_civicrm_website_add() {
 
 		// Intercept Website updates in CiviCRM.
 		add_action( 'civicrm_pre', [ $this, 'website_pre_edit' ], 10, 4 );
 		add_action( 'civicrm_post', [ $this, 'website_edited' ], 10, 4 );
 
-		// Intercept CiviCRM Custom Table updates.
-		//add_action( 'civicrm_custom', [ $this, 'custom_edited' ], 10, 4 );
+	}
+
+
+
+	/**
+	 * Register CiviCRM Phone hooks.
+	 *
+	 * @since 0.5
+	 */
+	public function hooks_civicrm_phone_add() {
+
+		// Intercept Phone updates in CiviCRM.
+		add_action( 'civicrm_pre', [ $this, 'phone_pre_delete' ], 10, 4 );
+		add_action( 'civicrm_post', [ $this, 'phone_created' ], 10, 4 );
+		add_action( 'civicrm_post', [ $this, 'phone_edited' ], 10, 4 );
+		add_action( 'civicrm_post', [ $this, 'phone_deleted' ], 10, 4 );
 
 	}
+
+
+
+	/**
+	 * Register CiviCRM Address hooks.
+	 *
+	 * @since 0.5
+	 */
+	public function hooks_civicrm_address_add() {
+
+		// Intercept Address updates in CiviCRM.
+		add_action( 'civicrm_pre', [ $this, 'address_pre_edit' ], 10, 4 );
+		add_action( 'civicrm_post', [ $this, 'address_created' ], 10, 4 );
+		add_action( 'civicrm_post', [ $this, 'address_edited' ], 10, 4 );
+		add_action( 'civicrm_pre', [ $this, 'address_pre_delete' ], 10, 4 );
+		add_action( 'civicrm_post', [ $this, 'address_deleted' ], 10, 4 );
+
+	}
+
+
+
+	/**
+	 * Register CiviCRM Custom Table hooks.
+	 *
+	 * @since 0.5
+	 */
+	public function hooks_civicrm_custom_add() {
+
+		// Intercept CiviCRM Custom Table updates.
+		add_action( 'civicrm_custom', [ $this, 'custom_edited' ], 10, 4 );
+
+	}
+
+
+
+	// -------------------------------------------------------------------------
 
 
 
@@ -261,22 +352,109 @@ class CiviCRM_WP_Profile_Sync_Mapper_Hooks_Core {
 	 */
 	public function hooks_civicrm_remove() {
 
+		// Remove CiviCRM hooks.
+		$this->hooks_civicrm_contact_remove();
+		$this->hooks_civicrm_email_remove();
+		$this->hooks_civicrm_website_remove();
+		$this->hooks_civicrm_phone_remove();
+		$this->hooks_civicrm_address_remove();
+		$this->hooks_civicrm_custom_remove();
+
+	}
+
+
+
+	/**
+	 * Unregister CiviCRM Contact hooks.
+	 *
+	 * @since 0.4
+	 */
+	public function hooks_civicrm_contact_remove() {
+
 		// Remove all CiviCRM Contact callbacks.
 		//remove_action( 'civicrm_pre', [ $this, 'contact_pre_create' ], 10 );
 		remove_action( 'civicrm_pre', [ $this, 'contact_pre_edit' ], 10 );
 		//remove_action( 'civicrm_post', [ $this, 'contact_created' ], 10 );
 		remove_action( 'civicrm_post', [ $this, 'contact_edited' ], 10 );
 
+	}
+
+
+
+	/**
+	 * Unregister CiviCRM Email hooks.
+	 *
+	 * @since 0.4
+	 */
+	public function hooks_civicrm_email_remove() {
+
 		// Remove all CiviCRM Email callbacks.
 		remove_action( 'civicrm_pre', [ $this, 'email_pre_edit' ], 10 );
 		remove_action( 'civicrm_post', [ $this, 'email_edited' ], 10 );
+
+	}
+
+
+
+	/**
+	 * Unregister CiviCRM Website hooks.
+	 *
+	 * @since 0.4
+	 */
+	public function hooks_civicrm_website_remove() {
 
 		// Remove all CiviCRM Website callbacks.
 		remove_action( 'civicrm_pre', [ $this, 'website_pre_edit' ], 10 );
 		remove_action( 'civicrm_post', [ $this, 'website_edited' ], 10 );
 
+	}
+
+
+
+	/**
+	 * Unregister CiviCRM Phone hooks.
+	 *
+	 * @since 0.4
+	 */
+	public function hooks_civicrm_phone_remove() {
+
+		// Remove Phone update hooks.
+		remove_action( 'civicrm_post', [ $this, 'phone_created' ], 10 );
+		remove_action( 'civicrm_post', [ $this, 'phone_edited' ], 10 );
+		remove_action( 'civicrm_pre', [ $this, 'phone_pre_delete' ], 10 );
+		remove_action( 'civicrm_post', [ $this, 'phone_deleted' ], 10 );
+
+	}
+
+
+
+	/**
+	 * Unregister CiviCRM Address hooks.
+	 *
+	 * @since 0.5
+	 */
+	public function hooks_civicrm_address_remove() {
+
+		// Remove Address update hooks.
+		remove_action( 'civicrm_pre', [ $this, 'address_pre_edit' ], 10 );
+		remove_action( 'civicrm_post', [ $this, 'address_created' ], 10 );
+		remove_action( 'civicrm_post', [ $this, 'address_edited' ], 10 );
+		remove_action( 'civicrm_pre', [ $this, 'address_pre_delete' ], 10 );
+		remove_action( 'civicrm_post', [ $this, 'address_deleted' ], 10 );
+
+	}
+
+
+
+	/**
+	 * Unregister CiviCRM Custom Table hooks.
+	 *
+	 * @since 0.5
+	 */
+	public function hooks_civicrm_custom_remove() {
+
 		// Remove CiviCRM Custom Table hooks.
-		//remove_action( 'civicrm_custom', [ $this, 'custom_edited' ], 10 );
+		remove_action( 'civicrm_custom', [ $this, 'custom_edited' ], 10 );
 
 	}
 
@@ -799,7 +977,7 @@ class CiviCRM_WP_Profile_Sync_Mapper_Hooks_Core {
 		 * There are mismatches between the Contact data that is passed in to
 		 * this callback and the Contact data that is retrieved by the API -
 		 * particularly the "employer_id" which may exist in this data but does
-		 * not exist in the data from the API (which has an "employer" field
+		 * not exist in the data from the API (which has an "employer" Field
 		 * whose value is the "Name" of the Employer instead) so we save the
 		 * "extra" data here for use later.
 		 */
@@ -1009,6 +1187,423 @@ class CiviCRM_WP_Profile_Sync_Mapper_Hooks_Core {
 		do_action( 'cwps/mapper/website_edited', $args );
 
 	}
+
+
+
+	// -------------------------------------------------------------------------
+
+
+
+	/**
+	 * Intercept when a CiviCRM Phone is created.
+	 *
+	 * @since 0.5
+	 *
+	 * @param string $op The type of database operation.
+	 * @param string $objectName The type of object.
+	 * @param integer $objectId The ID of the object.
+	 * @param object $objectRef The object.
+	 */
+	public function phone_created( $op, $objectName, $objectId, $objectRef ) {
+
+		// Bail if not the context we want.
+		if ( $op != 'create' ) {
+			return;
+		}
+
+		// Bail if this is not a Phone.
+		if ( $objectName != 'Phone' ) {
+			return;
+		}
+
+		// Let's make an array of the CiviCRM params.
+		$args = [
+			'op' => $op,
+			'objectName' => $objectName,
+			'objectId' => $objectId,
+		];
+
+		// Maybe cast objectRef as object.
+		$args['objectRef'] = is_object( $objectRef ) ? $objectRef : (object) $objectRef;
+
+		/**
+		 * Broadcast that a CiviCRM Phone has been created.
+		 *
+		 * @since 0.5
+		 *
+		 * @param array $args The array of CiviCRM params.
+		 */
+		do_action( 'cwps/mapper/phone/created', $args );
+
+	}
+
+
+
+	/**
+	 * Intercept when a CiviCRM Phone is updated.
+	 *
+	 * @since 0.5
+	 *
+	 * @param string $op The type of database operation.
+	 * @param string $objectName The type of object.
+	 * @param integer $objectId The ID of the object.
+	 * @param object $objectRef The object.
+	 */
+	public function phone_edited( $op, $objectName, $objectId, $objectRef ) {
+
+		// Bail if not the context we want.
+		if ( $op != 'edit' ) {
+			return;
+		}
+
+		// Bail if this is not a Phone.
+		if ( $objectName != 'Phone' ) {
+			return;
+		}
+
+		// Let's make an array of the CiviCRM params.
+		$args = [
+			'op' => $op,
+			'objectName' => $objectName,
+			'objectId' => $objectId,
+		];
+
+		// Maybe cast objectRef as object.
+		$args['objectRef'] = is_object( $objectRef ) ? $objectRef : (object) $objectRef;
+
+		/**
+		 * Broadcast that a CiviCRM Phone has been updated.
+		 *
+		 * @since 0.5
+		 *
+		 * @param array $args The array of CiviCRM params.
+		 */
+		do_action( 'cwps/mapper/phone/edited', $args );
+
+	}
+
+
+
+	/**
+	 * Intercept when a CiviCRM Phone is about to be deleted.
+	 *
+	 * @since 0.5
+	 *
+	 * @param string $op The type of database operation.
+	 * @param string $objectName The type of object.
+	 * @param integer $objectId The ID of the object.
+	 * @param object $objectRef The object.
+	 */
+	public function phone_pre_delete( $op, $objectName, $objectId, $objectRef ) {
+
+		// Bail if not the context we want.
+		if ( $op != 'delete' ) {
+			return;
+		}
+
+		// Bail if this is not a Phone.
+		if ( $objectName != 'Phone' ) {
+			return;
+		}
+
+		// Let's make an array of the params.
+		$args = [
+			'op' => $op,
+			'objectName' => $objectName,
+			'objectId' => $objectId,
+		];
+
+		// Maybe cast objectRef as object.
+		$args['objectRef'] = is_object( $objectRef ) ? $objectRef : (object) $objectRef;
+
+		/**
+		 * Broadcast that a CiviCRM Phone is about to be deleted.
+		 *
+		 * @since 0.5
+		 *
+		 * @param array $args The array of CiviCRM params.
+		 */
+		do_action( 'cwps/mapper/phone/delete/pre', $args );
+
+	}
+
+
+
+	/**
+	 * Intercept when a CiviCRM Phone has been deleted.
+	 *
+	 * @since 0.5
+	 *
+	 * @param string $op The type of database operation.
+	 * @param string $objectName The type of object.
+	 * @param integer $objectId The ID of the object.
+	 * @param object $objectRef The object.
+	 */
+	public function phone_deleted( $op, $objectName, $objectId, $objectRef ) {
+
+		// Bail if not the context we want.
+		if ( $op != 'delete' ) {
+			return;
+		}
+
+		// Bail if this is not a Phone.
+		if ( $objectName != 'Phone' ) {
+			return;
+		}
+
+		// Let's make an array of the params.
+		$args = [
+			'op' => $op,
+			'objectName' => $objectName,
+			'objectId' => $objectId,
+		];
+
+		// Maybe cast objectRef as object.
+		$args['objectRef'] = is_object( $objectRef ) ? $objectRef : (object) $objectRef;
+
+		/**
+		 * Broadcast that a CiviCRM Phone has been deleted.
+		 *
+		 * @since 0.5
+		 *
+		 * @param array $args The array of CiviCRM params.
+		 */
+		do_action( 'cwps/mapper/phone/deleted', $args );
+
+	}
+
+
+
+	// -------------------------------------------------------------------------
+
+
+
+	/**
+	 * Intercept when a CiviCRM Address is about to be edited.
+	 *
+	 * @since 0.5
+	 *
+	 * @param string $op The type of database operation.
+	 * @param string $objectName The type of object.
+	 * @param integer $objectId The ID of the object.
+	 * @param object $objectRef The object.
+	 */
+	public function address_pre_edit( $op, $objectName, $objectId, $objectRef ) {
+
+		// Bail if not the context we want.
+		if ( $op != 'edit' ) {
+			return;
+		}
+
+		// Bail if this is not an Address.
+		if ( $objectName != 'Address' ) {
+			return;
+		}
+
+		// Let's make an array of the params.
+		$args = [
+			'op' => $op,
+			'objectName' => $objectName,
+			'objectId' => $objectId,
+		];
+
+		// Maybe cast objectRef as object.
+		$args['objectRef'] = is_object( $objectRef ) ? $objectRef : (object) $objectRef;
+
+		/**
+		 * Broadcast that a CiviCRM Address is about to be updated.
+		 *
+		 * @since 0.5
+		 *
+		 * @param array $args The array of CiviCRM params.
+		 */
+		do_action( 'cwps/mapper/address/edit/pre', $args );
+
+	}
+
+
+
+	/**
+	 * Intercept when a CiviCRM Contact's Address has been created.
+	 *
+	 * @since 0.5
+	 *
+	 * @param string $op The type of database operation.
+	 * @param string $objectName The type of object.
+	 * @param integer $objectId The ID of the object.
+	 * @param object $objectRef The object.
+	 */
+	public function address_created( $op, $objectName, $objectId, $objectRef ) {
+
+		// Bail if not the context we want.
+		if ( $op != 'create' ) {
+			return;
+		}
+
+		// Bail if this is not an Address.
+		if ( $objectName != 'Address' ) {
+			return;
+		}
+
+		// Let's make an array of the params.
+		$args = [
+			'op' => $op,
+			'objectName' => $objectName,
+			'objectId' => $objectId,
+		];
+
+		// Maybe cast objectRef as object.
+		$args['objectRef'] = is_object( $objectRef ) ? $objectRef : (object) $objectRef;
+
+		/**
+		 * Broadcast that a CiviCRM Address has been created.
+		 *
+		 * @since 0.5
+		 *
+		 * @param array $args The array of CiviCRM params.
+		 */
+		do_action( 'cwps/mapper/address/created', $args );
+
+	}
+
+
+
+	/**
+	 * Intercept when a CiviCRM Contact's Address has been edited.
+	 *
+	 * @since 0.5
+	 *
+	 * @param string $op The type of database operation.
+	 * @param string $objectName The type of object.
+	 * @param integer $objectId The ID of the object.
+	 * @param object $objectRef The object.
+	 */
+	public function address_edited( $op, $objectName, $objectId, $objectRef ) {
+
+		// Bail if not the context we want.
+		if ( $op != 'edit' ) {
+			return;
+		}
+
+		// Bail if this is not an Address.
+		if ( $objectName != 'Address' ) {
+			return;
+		}
+
+		// Let's make an array of the params.
+		$args = [
+			'op' => $op,
+			'objectName' => $objectName,
+			'objectId' => $objectId,
+		];
+
+		// Maybe cast objectRef as object.
+		$args['objectRef'] = is_object( $objectRef ) ? $objectRef : (object) $objectRef;
+
+		/**
+		 * Broadcast that a CiviCRM Address has been updated.
+		 *
+		 * @since 0.5
+		 *
+		 * @param array $args The array of CiviCRM params.
+		 */
+		do_action( 'cwps/mapper/address/edited', $args );
+
+	}
+
+
+
+	/**
+	 * Intercept when a CiviCRM Address is about to be deleted.
+	 *
+	 * @since 0.5
+	 *
+	 * @param string $op The type of database operation.
+	 * @param string $objectName The type of object.
+	 * @param integer $objectId The ID of the object.
+	 * @param object $objectRef The object.
+	 */
+	public function address_pre_delete( $op, $objectName, $objectId, $objectRef ) {
+
+		// Bail if not the context we want.
+		if ( $op != 'delete' ) {
+			return;
+		}
+
+		// Bail if this is not an Address.
+		if ( $objectName != 'Address' ) {
+			return;
+		}
+
+		// Let's make an array of the params.
+		$args = [
+			'op' => $op,
+			'objectName' => $objectName,
+			'objectId' => $objectId,
+		];
+
+		// Maybe cast objectRef as object.
+		$args['objectRef'] = is_object( $objectRef ) ? $objectRef : (object) $objectRef;
+
+		/**
+		 * Broadcast that a CiviCRM Address is about to be deleted.
+		 *
+		 * @since 0.5
+		 *
+		 * @param array $args The array of CiviCRM params.
+		 */
+		do_action( 'cwps/mapper/address/delete/pre', $args );
+
+	}
+
+
+
+	/**
+	 * Intercept when a CiviCRM Contact's Address has been deleted.
+	 *
+	 * @since 0.5
+	 *
+	 * @param string $op The type of database operation.
+	 * @param string $objectName The type of object.
+	 * @param integer $objectId The ID of the object.
+	 * @param object $objectRef The object.
+	 */
+	public function address_deleted( $op, $objectName, $objectId, $objectRef ) {
+
+		// Bail if not the context we want.
+		if ( $op != 'delete' ) {
+			return;
+		}
+
+		// Bail if this is not an Address.
+		if ( $objectName != 'Address' ) {
+			return;
+		}
+
+		// Let's make an array of the params.
+		$args = [
+			'op' => $op,
+			'objectName' => $objectName,
+			'objectId' => $objectId,
+		];
+
+		// Maybe cast objectRef as object.
+		$args['objectRef'] = is_object( $objectRef ) ? $objectRef : (object) $objectRef;
+
+		/**
+		 * Broadcast that a CiviCRM Address has been deleted.
+		 *
+		 * @since 0.5
+		 *
+		 * @param array $args The array of CiviCRM params.
+		 */
+		do_action( 'cwps/mapper/address/deleted', $args );
+
+	}
+
+
+
+	// -------------------------------------------------------------------------
 
 
 

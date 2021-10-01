@@ -141,7 +141,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	];
 
 	/**
-	 * "CiviCRM Field" field value prefix in the BuddyPress Field data.
+	 * "CiviCRM Field" Field value prefix in the BuddyPress Field data.
 	 *
 	 * This distinguishes Contact Fields from Custom Fields.
 	 *
@@ -209,9 +209,15 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 		// Append "True/False" mappings to the "Checkbox" xProfile Field Type.
 		add_filter( 'cwps/bp/civicrm/contact_field/get_for_bp_field', [ $this, 'true_false_fields_append' ], 10, 3 );
 
+		// Determine if a "Checkbox" Field is a "True/False" Field.
+		add_filter( 'cwps/bp/xprofile/value/checkbox/query_type', [ $this, 'true_false_field_query' ], 10, 2 );
+
 		// Filter the xProfile Field settings when saving on the "Edit Field" screen.
 		//add_filter( 'cwps/bp/field/post_update', [ $this, 'date_settings_modify' ], 10, 2 );
 		//add_filter( 'cwps/bp/field/post_update', [ $this, 'text_settings_modify' ], 10, 2 );
+
+		// Listen for when a Contact Field need syncing to an xProfile Field.
+		add_action( 'cwps/buddypress/contact/field/sync', [ $this, 'bp_field_update' ], 10, 2 );
 
 		return;
 
@@ -318,7 +324,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 			$name = $parent_type['name'];
 		}
 
-		// Get public fields of this type.
+		// Get public Fields of this type.
 		$contact_fields = $this->data_get( $name, $field_type, 'public' );
 
 		/*
@@ -503,8 +509,8 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	 *
 	 * @param array $contact_type The Contact Type to query.
 	 * @param string $field_type The type of BuddyPress Field.
-	 * @param string $filter The token by which to filter the array of fields.
-	 * @return array $fields The array of field names.
+	 * @param string $filter The token by which to filter the array of Fields.
+	 * @return array $fields The array of Field names.
 	 */
 	public function data_get( $contact_type = 'Individual', $field_type = '', $filter = 'none' ) {
 
@@ -545,10 +551,10 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 			// Check public filter.
 			} elseif ( $filter == 'public' ) {
 
-				// Init fields array.
+				// Init Fields array.
 				$contact_fields = [];
 
-				// Check against different field sets per type.
+				// Check against different Field sets per type.
 				if ( $contact_type == 'Individual' ) {
 					$contact_fields = $this->contact_fields_individual;
 				}
@@ -559,7 +565,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 					$contact_fields = $this->contact_fields_household;
 				}
 
-				// Combine these with common fields.
+				// Combine these with common Fields.
 				$contact_fields = array_merge( $contact_fields, $this->contact_fields_common );
 
 				// Skip all but those defined in our Contact Fields arrays.
@@ -621,13 +627,71 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 
 
 
-	// -------------------------------------------------------------------------
-	// -------------------------------------------------------------------------
-	// -------------------------------------------------------------------------
-	public function _____divider() {}
-	// -------------------------------------------------------------------------
-	// -------------------------------------------------------------------------
-	// -------------------------------------------------------------------------
+	/**
+	 * Sync a mapped Contact Field to a BuddyPress xProfile Field.
+	 *
+	 * @since 0.5
+	 *
+	 * @param $params The array of Field params.
+	 * @param $args The array of arguments from the Mapper.
+	 */
+	public function bp_field_update( $params, $args ) {
+
+		// Bail if something is amiss.
+		if ( empty( $params['field_meta']['value'] ) ) {
+			return;
+		}
+
+		// Try and get the name of the Contact Field.
+		$contact_field = $this->name_get( $params['field_meta']['value'] );
+		if ( empty( $contact_field ) ) {
+			return;
+		}
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'contact_field' => $contact_field,
+			'params' => $params,
+			//'args' => $args,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		// Does the mapped Contact Field exist?
+		if ( ! isset( $args['objectRef']->$contact_field ) ) {
+			return;
+		}
+
+		// Modify value for BuddyPress prior to update.
+		$value = $this->value_get_for_bp( $args['objectRef']->$contact_field, $contact_field, $params );
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'value' => $value,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		// Okay, go ahead and save the value to the xProfile Field.
+		$result = xprofile_set_field_data( $params['field_id'], $args['user_id'], $value );
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'result' => $result,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+	}
 
 
 
@@ -638,79 +702,88 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 	 *
 	 * @param mixed $value The Contact Field value.
 	 * @param array $name The Contact Field name.
-	 * @param string $selector The BuddyPress Field selector.
-	 * @param mixed $post_id The BuddyPress "Post ID".
-	 * @return mixed $value The formatted field value.
+	 * @param $params The array of Field params.
+	 * @return mixed $value The value formatted for BuddyPress.
 	 */
-	public function value_get_for_bp( $value, $name, $selector, $post_id ) {
+	public function value_get_for_bp( $value, $name, $params ) {
 
-		// Bail if empty.
-		if ( empty( $value ) ) {
-			return $value;
-		}
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'value' => $value,
+			'name' => $name,
+			'params' => $params,
+			//'args' => $args,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
 
 		// Bail if value is (string) 'null' which CiviCRM uses for some reason.
-		if ( $value == 'null' ) {
+		if ( $value == 'null' || $value == 'NULL' ) {
 			return '';
 		}
 
-		// Get the BuddyPress type for this Contact Field.
+		// Get the BuddyPress Field Type for this Contact Field.
 		$type = $this->get_bp_type( $name );
 
-		// Convert CiviCRM value to BuddyPress value by Contact Field.
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'type' => $type,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		// Convert CiviCRM value to BuddyPress value by Field Type.
 		switch( $type ) {
 
-			// Unused at present.
-			case 'select' :
+			// Used by "Do not Sms" etc.
+			case 'true_false' :
+
+				// Clear the value when empty.
+				if ( empty( $value ) ) {
+					$value = null;
+				} else {
+					$value = 1;
+				}
+
+				break;
+
+			// May not be used.
 			case 'checkbox' :
 
 				// Convert if the value has the special CiviCRM array-like format.
-				if ( false !== strpos( $value, CRM_Core_DAO::VALUE_SEPARATOR ) ) {
-					$value = CRM_Utils_Array::explodePadded( $value );
+				if ( is_string( $value ) ) {
+					if ( false !== strpos( $value, CRM_Core_DAO::VALUE_SEPARATOR ) ) {
+						$value = CRM_Utils_Array::explodePadded( $value );
+					}
 				}
 
 				break;
 
 			// Used by "Birth Date" and "Deceased Date".
-			case 'date_picker' :
-			case 'date_time_picker' :
+			case 'datebox' :
 
-				// Get field setting.
-				$bp_setting = get_field_object( $selector, $post_id );
+				// Contact edit passes a Y-m-d format, so test for that.
+				$datetime = DateTime::createFromFormat( 'Y-m-d', $value );
 
-				// Date Picker test.
-				if ( $bp_setting['type'] == 'date_picker' ) {
-
-					// Contact edit passes a Y-m-d format, so test for that.
-					$datetime = DateTime::createFromFormat( 'Y-m-d', $value );
-
-					// Contact create passes a different format, so test for that.
-					if ( $datetime === false ) {
-						$datetime = DateTime::createFromFormat( 'YmdHis', $value );
-					}
-
-					// Convert to BuddyPress format.
-					$value = $datetime->format( 'Y-m-d H:i:s' );
-
-				// Date & Time Picker test.
-				} elseif ( $bp_setting['type'] == 'date_time_picker' ) {
+				// Contact create passes a different format, so test for that.
+				if ( $datetime === false ) {
 					$datetime = DateTime::createFromFormat( 'YmdHis', $value );
-					$value = $datetime->format( 'Y-m-d H:i:s' );
+				}
+
+				// Convert to BuddyPress format which cannot have "H:m:s".
+				if ( $datetime !== false ) {
+					$value = $datetime->format( 'Y-m-d' ) . ' 00:00:00';
 				}
 
 				break;
 
-			// Used by "Contact Image".
-			case 'image' :
-
-				// Delegate to method, expect an Attachment ID.
-				$value = $this->image_value_get_for_bp( $value, $name, $selector, $post_id );
-
-				break;
-
 		}
-
-		// TODO: Filter here?
 
 		/**
 		 * When submitting the Contact "Edit" form in the CiviCRM back end, the
@@ -733,314 +806,6 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 
 		// --<
 		return $value;
-
-	}
-
-
-
-	/**
-	 * Get the core Contact Fields for all CiviCRM Contact Types.
-	 *
-	 * @since 0.5
-	 *
-	 * @param string $filter The token by which to filter the array of fields.
-	 * @return array $fields The array of Contact Field names.
-	 */
-	public function data_get_filtered( $filter = 'none' ) {
-
-		// Only do this once per Contact Type, Field Type and filter.
-		static $pseudocache;
-		if ( isset( $pseudocache[$filter] ) ) {
-			return $pseudocache[$filter];
-		}
-
-		// Init return.
-		$fields = [];
-
-		// Try and init CiviCRM.
-		if ( ! $this->civicrm->is_initialised() ) {
-			return $fields;
-		}
-
-		// Construct params.
-		$params = [
-			'version' => 3,
-			'sequential' => 1,
-			'options' => [
-				//'sort' => 'title',
-				'limit' => 0, // No limit.
-			],
-		];
-
-		// Call the API.
-		$result = civicrm_api( 'Contact', 'getfields', $params );
-
-		// Override return if we get some.
-		if ( $result['is_error'] == 0 && ! empty( $result['values'] ) ) {
-
-			// Check for no filter.
-			if ( $filter == 'none' ) {
-
-				// Grab all of them.
-				$fields = $result['values'];
-
-			// Check public filter.
-			} elseif ( $filter == 'public' ) {
-
-				// Get the top level Contact Types array.
-				$top_level = [];
-				$contact_types = $this->plugin->civicrm->contact_type->types_get_all();
-				foreach ( $contact_types as $contact_type ) {
-					if ( empty( $contact_type['parent_id'] ) ) {
-						$top_level[$contact_type['name']] = $contact_type['id'];
-					}
-				}
-
-				// Skip all but those defined in our Contact Fields arrays.
-				foreach ( $result['values'] as $key => $value ) {
-					if ( array_key_exists( $value['name'], $this->contact_fields_individual ) ) {
-						$fields[$top_level['Individual']][] = $value;
-					}
-					if ( array_key_exists( $value['name'], $this->contact_fields_organization ) ) {
-						$fields[$top_level['Organization']][] = $value;
-					}
-					if ( array_key_exists( $value['name'], $this->contact_fields_household ) ) {
-						$fields[$top_level['Household']][] = $value;
-					}
-					if ( array_key_exists( $value['name'], $this->contact_fields_common ) ) {
-						$fields['common'][] = $value;
-					}
-				}
-
-			}
-
-		}
-
-		// Maybe add to pseudo-cache.
-		if ( ! isset( $pseudocache[$filter] ) ) {
-			$pseudocache[$filter] = $fields;
-		}
-
-		// --<
-		return $fields;
-
-	}
-
-
-
-	/**
-	 * Get the Fields for a CiviCRM Contact Type.
-	 *
-	 * @since 0.5
-	 *
-	 * @param array $types The Contact Type(s) to query.
-	 * @return array $fields The array of field names.
-	 */
-	public function get_public( $types = [ 'Individual' ] ) {
-
-		// Init return.
-		$contact_fields = [];
-
-		// Check against different field sets per type.
-		if ( in_array( 'Individual', $types ) ) {
-			$contact_fields = $this->contact_fields_individual;
-		}
-		if ( in_array( 'Organization', $types ) ) {
-			$contact_fields = $this->contact_fields_organization;
-		}
-		if ( in_array( 'Household', $types ) ) {
-			$contact_fields = $this->contact_fields_household;
-		}
-
-		// Combine these with common fields.
-		$contact_fields = array_merge( $contact_fields, $this->contact_fields_common );
-
-		// --<
-		return $contact_fields;
-
-	}
-
-
-
-	/**
-	 * Get the public Fields for all top-level CiviCRM Contact Types.
-	 *
-	 * @since 0.5
-	 *
-	 * @return array $public_fields The array of CiviCRM Fields.
-	 */
-	public function get_public_fields() {
-
-		// Init return.
-		$public_fields = [];
-
-		// Get the public Contact Fields for all top level Contact Types.
-		$public_fields = $this->data_get_filtered( 'public' );
-
-		// --<
-		return $public_fields;
-
-	}
-
-
-
-	// -------------------------------------------------------------------------
-
-
-
-	/**
-	 * Modify the Options of a special case BuddyPress "Checkbox" Field.
-	 *
-	 * BuddyPress does not have a "True/False" Field, so we use a "Checkbox"
-	 * with only a single option.
-	 *
-	 * @since 0.5
-	 *
-	 * @param array $options The initially empty array to be populated.
-	 * @param array $field_type The type of xProfile Field being saved.
-	 * @param array $args The array of CiviCRM mapping data.
-	 * @return array $options The possibly populated array of Options.
-	 */
-	public function true_false_settings_modify( $options, $field_type, $args ) {
-
-		// Bail early if not the "Checkbox" Field Type.
-		if ( 'checkbox' !== $field_type ) {
-			return $options;
-		}
-
-		/*
-		$e = new \Exception();
-		$trace = $e->getTraceAsString();
-		error_log( print_r( [
-			'method' => __METHOD__,
-			'options' => $options,
-			'field_type' => $field_type,
-			'args' => $args,
-			//'backtrace' => $trace,
-		], true ) );
-		*/
-
-		// Get the mapped Contact Field name.
-		$contact_field_name = $this->name_get( $args['value'] );
-
-		/*
-		$e = new \Exception();
-		$trace = $e->getTraceAsString();
-		error_log( print_r( [
-			'method' => __METHOD__,
-			//'value' => $value,
-			'contact_field_name' => $contact_field_name,
-			//'backtrace' => $trace,
-		], true ) );
-		*/
-
-		if ( empty( $contact_field_name ) ) {
-			return $options;
-		}
-
-		// Bail if not a "True/False" Field Type.
-		$civicrm_field_type = $this->get_bp_type( $contact_field_name );
-
-		/*
-		$e = new \Exception();
-		$trace = $e->getTraceAsString();
-		error_log( print_r( [
-			'method' => __METHOD__,
-			'civicrm_field_type' => $civicrm_field_type,
-			//'backtrace' => $trace,
-		], true ) );
-		*/
-
-		if ( $civicrm_field_type !== 'true_false' ) {
-			return $options;
-		}
-
-		// Get the full details for the CiviCRM Field.
-		$civicrm_field = $this->plugin->civicrm->contact_field->get_by_name( $contact_field_name );
-
-		/*
-		$e = new \Exception();
-		$trace = $e->getTraceAsString();
-		error_log( print_r( [
-			'method' => __METHOD__,
-			'civicrm_field' => $civicrm_field,
-			//'backtrace' => $trace,
-		], true ) );
-		*/
-
-		// Use title for checkbox label.
-		$options = [ 1 => $civicrm_field['title'] ];
-
-		// --<
-		return $options;
-
-	}
-
-
-
-	/**
-	 * Filter the Contact Fields for a special case BuddyPress "Checkbox" Field.
-	 *
-	 * BuddyPress does not have a "True/False" Field, so we use a "Checkbox"
-	 * with only a single option.
-	 *
-	 * @since 0.5
-	 *
-	 * @param array $contact_fields The existing array of Contact Fields.
-	 * @param string $field_type The BuddyPress Field Type.
-	 * @param string $name The name of the top-level Contact Type.
-	 * @return array $contact_fields The modified array of Contact Fields.
-	 */
-	public function true_false_fields_append( $contact_fields, $field_type, $name ) {
-
-		// Bail early if not the "Checkbox" Field Type.
-		if ( 'checkbox' !== $field_type ) {
-			return $contact_fields;
-		}
-
-		/*
-		$e = new \Exception();
-		$trace = $e->getTraceAsString();
-		error_log( print_r( [
-			'method' => __METHOD__,
-			'contact_fields' => $contact_fields,
-			'field_type' => $field_type,
-			'name' => $name,
-			//'backtrace' => $trace,
-		], true ) );
-		*/
-
-		// Get public fields of this type.
-		$true_false_fields = $this->data_get( $name, 'true_false', 'public' );
-		if ( empty( $true_false_fields ) ) {
-			return $contact_fields;
-		}
-
-		/*
-		$e = new \Exception();
-		$trace = $e->getTraceAsString();
-		error_log( print_r( [
-			'method' => __METHOD__,
-			'true_false_fields' => $true_false_fields,
-			//'backtrace' => $trace,
-		], true ) );
-		*/
-
-		// Merge with Contact Fields.
-		$contact_fields = array_merge( $contact_fields, $true_false_fields );
-
-		/*
-		$e = new \Exception();
-		$trace = $e->getTraceAsString();
-		error_log( print_r( [
-			'method' => __METHOD__,
-			'contact_fields-FINAL' => $contact_fields,
-			//'backtrace' => $trace,
-		], true ) );
-		*/
-
-		// --<
-		return $contact_fields;
 
 	}
 
@@ -1222,6 +987,213 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Contact_Field {
 		if ( ! empty( $field_data['maxlength'] ) ) {
 			$field['maxlength'] = $field_data['maxlength'];
 		}
+
+	}
+
+
+
+	// -------------------------------------------------------------------------
+
+
+
+	/**
+	 * Modify the Options of a special case BuddyPress "Checkbox" Field.
+	 *
+	 * BuddyPress does not have a "True/False" Field, so we use a "Checkbox"
+	 * with only a single option.
+	 *
+	 * @since 0.5
+	 *
+	 * @param array $options The initially empty array to be populated.
+	 * @param array $field_type The type of xProfile Field being saved.
+	 * @param array $args The array of CiviCRM mapping data.
+	 * @return array $options The possibly populated array of Options.
+	 */
+	public function true_false_settings_modify( $options, $field_type, $args ) {
+
+		// Bail early if not the "Checkbox" Field Type.
+		if ( 'checkbox' !== $field_type ) {
+			return $options;
+		}
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'options' => $options,
+			'field_type' => $field_type,
+			'args' => $args,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		// Get the mapped Contact Field name.
+		$contact_field_name = $this->name_get( $args['value'] );
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			//'value' => $value,
+			'contact_field_name' => $contact_field_name,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		if ( empty( $contact_field_name ) ) {
+			return $options;
+		}
+
+		// Bail if not a "True/False" Field Type.
+		$civicrm_field_type = $this->get_bp_type( $contact_field_name );
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'civicrm_field_type' => $civicrm_field_type,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		if ( $civicrm_field_type !== 'true_false' ) {
+			return $options;
+		}
+
+		// Get the full details for the CiviCRM Field.
+		$civicrm_field = $this->plugin->civicrm->contact_field->get_by_name( $contact_field_name );
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'civicrm_field' => $civicrm_field,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		// Use title for checkbox label.
+		$options = [ 1 => $civicrm_field['title'] ];
+
+		// --<
+		return $options;
+
+	}
+
+
+
+	/**
+	 * Filter the Contact Fields for a special case BuddyPress "Checkbox" Field.
+	 *
+	 * BuddyPress does not have a "True/False" Field, so we use a "Checkbox"
+	 * with only a single option.
+	 *
+	 * @since 0.5
+	 *
+	 * @param array $contact_fields The existing array of Contact Fields.
+	 * @param string $field_type The BuddyPress Field Type.
+	 * @param string $name The name of the top-level Contact Type.
+	 * @return array $contact_fields The modified array of Contact Fields.
+	 */
+	public function true_false_fields_append( $contact_fields, $field_type, $name ) {
+
+		// Bail early if not the "Checkbox" Field Type.
+		if ( 'checkbox' !== $field_type ) {
+			return $contact_fields;
+		}
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'contact_fields' => $contact_fields,
+			'field_type' => $field_type,
+			'name' => $name,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		// Get public Fields of this type.
+		$true_false_fields = $this->data_get( $name, 'true_false', 'public' );
+		if ( empty( $true_false_fields ) ) {
+			return $contact_fields;
+		}
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'true_false_fields' => $true_false_fields,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		// Merge with Contact Fields.
+		$contact_fields = array_merge( $contact_fields, $true_false_fields );
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'contact_fields-FINAL' => $contact_fields,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		// --<
+		return $contact_fields;
+
+	}
+
+
+
+	/**
+	 * Checks if a "Checkbox" Field is a "True/False" Field.
+	 *
+	 * @since 0.5
+	 *
+	 * @param bool $is_true_false True if "Checkbox" is a "True/False" Field. False by default.
+	 * @param array $args The array of arguments.
+	 * @return bool $is_true_false True if "Checkbox" is a "True/False" Field. False by default.
+	 */
+	public function true_false_field_query( $is_true_false, $args ) {
+
+		// Bail early if not the "Contact" Entity Type.
+		if ( 'Contact' !== $args['entity_type'] ) {
+			return $is_true_false;
+		}
+
+		// Bail if not a "Contact Field".
+		if ( empty( $args['contact_field_name'] ) ) {
+			return $is_true_false;
+		}
+
+		// Check if this is a "True/False" Field Type.
+		$civicrm_field_type = $this->get_bp_type( $args['contact_field_name'] );
+		if ( $civicrm_field_type === 'true_false' ) {
+			$is_true_false = true;
+		}
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'is_true_false' => $is_true_false,
+			'args' => $args,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		// --<
+		return $is_true_false;
 
 	}
 

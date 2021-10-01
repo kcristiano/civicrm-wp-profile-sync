@@ -148,13 +148,18 @@ class CiviCRM_WP_Profile_Sync_BuddyPress {
 	 */
 	public function include_files() {
 
-		// Include class files.
-		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-xprofile.php';
-
 		// Maybe include BuddyBoss class.
 		if ( $this->is_buddyboss === true ) {
 			include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-buddyboss.php';
 		}
+
+		// Bail if not developing BuddyPress xProfile sync.
+		if ( CIVICRM_WP_PROFILE_SYNC_BUDDYPRESS === false ) {
+			return;
+		}
+
+		// Include xProfile class files.
+		include CIVICRM_WP_PROFILE_SYNC_PATH . 'includes/buddypress/cwps-bp-xprofile.php';
 
 	}
 
@@ -167,13 +172,18 @@ class CiviCRM_WP_Profile_Sync_BuddyPress {
 	 */
 	public function setup_objects() {
 
-		// Init objects.
-		$this->xprofile = new CiviCRM_Profile_Sync_BP_xProfile( $this );
-
 		// Maybe init BuddyBoss object.
 		if ( $this->is_buddyboss === true ) {
 			$this->buddyboss = new CiviCRM_Profile_Sync_BP_BuddyBoss( $this );
 		}
+
+		// Bail if not developing BuddyPress xProfile sync.
+		if ( CIVICRM_WP_PROFILE_SYNC_BUDDYPRESS === false ) {
+			return;
+		}
+
+		// Init xProfile objects.
+		$this->xprofile = new CiviCRM_Profile_Sync_BP_xProfile( $this );
 
 	}
 

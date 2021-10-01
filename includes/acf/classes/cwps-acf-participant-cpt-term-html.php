@@ -164,7 +164,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Term_HTML {
 
 
 	/**
-	 * Add the WYSIWYG editor to the "Edit" field.
+	 * Add the WYSIWYG editor to the "Edit" Field.
 	 *
 	 * @since 0.5
 	 *
@@ -186,7 +186,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Term_HTML {
 			<td><?php wp_editor( htmlspecialchars_decode( $term->description ), 'html-description', $settings ); ?>
 			<span class="description"><?php _e( 'The description is not prominent by default, however some themes may show it.', 'civicrm-wp-profile-sync' ); ?></span></td>
 			<script type="text/javascript">
-				// Remove the non-HTML field.
+				// Remove the non-HTML Field.
 				jQuery( 'textarea#description' ).closest( '.form-field' ).remove();
 			</script>
 		</tr>
@@ -197,7 +197,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Term_HTML {
 
 
 	/**
-	 * Add the WYSIWYG editor to the "Add" field.
+	 * Add the WYSIWYG editor to the "Add" Field.
 	 *
 	 * @since 0.5
 	 *
@@ -218,7 +218,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_CPT_Term_HTML {
 			<?php wp_editor( '', 'html-tag-description', $settings ); ?>
 			<p class="description"><?php _e( 'The description is not prominent by default, however some themes may show it.', 'civicrm-wp-profile-sync' ); ?></p>
 			<script type="text/javascript">
-				// Remove the non-HTML field.
+				// Remove the non-HTML Field.
 				jQuery( 'textarea#tag-description' ).closest( '.form-field' ).remove();
 				// Trigger save.
 				jQuery( function() {

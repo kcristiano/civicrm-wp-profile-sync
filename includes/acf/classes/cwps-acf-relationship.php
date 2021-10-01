@@ -21,8 +21,8 @@ defined( 'ABSPATH' ) || exit;
  * There are oddities in CiviCRM's relationships, particularly the "Employer Of"
  * relationship - which is both a Relationship and a "Contact Field". The ID of
  * the "Current Employer" Contact may be present in the values returned for a
- * "Contact" in the "current_employer" field and can be set via the API by
- * populating the "employer_id" field. I'm not sure how to handle this yet.
+ * "Contact" in the "current_employer" Field and can be set via the API by
+ * populating the "employer_id" Field. I'm not sure how to handle this yet.
  *
  * @since 0.4
  */
@@ -56,7 +56,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Relationship extends CiviCRM_Profile_Sync
 	public $civicrm;
 
 	/**
-	 * "CiviCRM Relationship" field key in the ACF Field data.
+	 * "CiviCRM Relationship" Field key in the ACF Field data.
 	 *
 	 * @since 0.4
 	 * @access public
@@ -248,7 +248,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Relationship extends CiviCRM_Profile_Sync
 	 */
 	public function fields_handled_update( $args ) {
 
-		// Bail if we have no field data to save.
+		// Bail if we have no Field data to save.
 		if ( empty( $args['fields'] ) ) {
 			return true;
 		}
@@ -256,10 +256,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Relationship extends CiviCRM_Profile_Sync
 		// Init success.
 		$success = true;
 
-		// Loop through the field data.
+		// Loop through the Field data.
 		foreach ( $args['fields'] as $field => $value ) {
 
-			// Get the field settings.
+			// Get the Field settings.
 			$settings = get_field_object( $field, $args['post_id'] );
 
 			// Maybe update a Relationship.
@@ -306,7 +306,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Relationship extends CiviCRM_Profile_Sync
 		// The Relationship code is the setting.
 		$code = $settings[$relationship_key];
 
-		// Parse value by field type.
+		// Parse value by Field Type.
 		$value = $this->acf_loader->acf->field->value_get_for_civicrm( $value, $settings['type'], $settings );
 
 		// Update the Relationships.
@@ -1226,8 +1226,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Relationship extends CiviCRM_Profile_Sync
 	 *
 	 * @since 0.5
 	 *
-	 * @param string $filter The token by which to filter the array of fields.
-	 * @return array $fields The array of field names.
+	 * @param string $filter The token by which to filter the array of Fields.
+	 * @return array $fields The array of Field names.
 	 */
 	public function civicrm_fields_get( $filter = 'none' ) {
 
@@ -1480,7 +1480,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Relationship extends CiviCRM_Profile_Sync
 		// Get Field Group for this Field's parent.
 		$field_group = $this->acf_loader->acf->field_group->get_for_field( $field );
 
-		// Bail if there's no field group.
+		// Bail if there's no Field Group.
 		if ( empty( $field_group ) ) {
 			return $relationships;
 		}
@@ -1759,7 +1759,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Relationship extends CiviCRM_Profile_Sync
 			return;
 		}
 
-		// Define field.
+		// Define Field.
 		$field = [
 			'key' => $this->acf_field_key_get(),
 			'label' => __( 'CiviCRM Relationship', 'civicrm-wp-profile-sync' ),

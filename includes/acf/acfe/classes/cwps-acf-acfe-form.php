@@ -453,7 +453,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 	 */
 	public function query_settings_field( $setting_field, $field, $field_group ) {
 
-		// Pass if conflicting fields have been found.
+		// Pass if conflicting Fields have been found.
 		if ( $setting_field === false ) {
 			return false;
 		}
@@ -464,7 +464,7 @@ class CiviCRM_Profile_Sync_ACF_ACFE_Form {
 			return $setting_field;
 		}
 
-		// If already populated, then this is a conflicting field.
+		// If already populated, then this is a conflicting Field.
 		if ( ! empty( $setting_field ) ) {
 			return false;
 		}

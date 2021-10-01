@@ -387,8 +387,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Membership {
 	 *
 	 * @since 0.5
 	 *
-	 * @param string $filter The token by which to filter the array of fields.
-	 * @return array $fields The array of field names.
+	 * @param string $filter The token by which to filter the array of Fields.
+	 * @return array $fields The array of Field names.
 	 */
 	public function civicrm_fields_get( $filter = 'none' ) {
 

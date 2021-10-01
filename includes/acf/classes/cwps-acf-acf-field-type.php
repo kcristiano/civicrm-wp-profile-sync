@@ -184,7 +184,7 @@ class CiviCRM_Profile_Sync_ACF_Field_Type {
 	 */
 	public function setup_field_types( $version ) {
 
-		// Create fields.
+		// Create Fields.
 		new CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_ID_Field( $this );
 		new CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_Field( $this );
 		new CiviCRM_Profile_Sync_Custom_CiviCRM_Relationship( $this );

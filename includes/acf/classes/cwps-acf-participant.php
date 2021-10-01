@@ -79,7 +79,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant {
 	public $identifier = 'participant';
 
 	/**
-	 * "CiviCRM Field" field value prefix in the ACF Field data.
+	 * "CiviCRM Field" Field value prefix in the ACF Field data.
 	 *
 	 * This distinguishes Participant Fields from Custom Fields.
 	 *
@@ -361,10 +361,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant {
 		}
 
 		/*
-		 * Get existing field values.
+		 * Get existing Field values.
 		 *
 		 * These are actually the *new* values because we are hooking in *after*
-		 * the fields have been saved.
+		 * the Fields have been saved.
 		 */
 		$fields = get_fields( $post->ID, false );
 
@@ -943,10 +943,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant {
 	 */
 	public function prepare_from_fields( $fields, $post, $post_id = null ) {
 
-		// Init data for fields.
+		// Init data for Fields.
 		$participant_data = [];
 
-		// Bail if we have no field data to save.
+		// Bail if we have no Field data to save.
 		if ( empty( $fields ) ) {
 			return $participant_data;
 		}
@@ -954,10 +954,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant {
 		// Always assign Participant Role ID.
 		$participant_data['role_id'] = $this->civicrm->participant_role->id_get_for_post_type( $post->post_type );
 
-		// Loop through the field data.
+		// Loop through the Field data.
 		foreach ( $fields as $selector => $value ) {
 
-			// Get the field settings.
+			// Get the Field settings.
 			$settings = get_field_object( $selector, $post_id );
 
 			// Get the CiviCRM Custom Field and Participant Field.
@@ -1010,7 +1010,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant {
 
 				}
 
-				// Parse value by field type.
+				// Parse value by Field Type.
 				$value = $this->acf->field->value_get_for_civicrm( $value, $settings['type'], $settings );
 
 				// Some Participant Fields cannot be empty.
@@ -1019,7 +1019,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant {
 					'event_id',
 				];
 
-				// Add it to the field data.
+				// Add it to the Field data.
 				if ( in_array( $code, $cannot_be_empty ) && empty( $value ) ) {
 					// Skip.
 				} else {
@@ -1184,7 +1184,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant {
 		 */
 		$choices = apply_filters( 'cwps/acf/civicrm/participant/civicrm_field/choices', $choices );
 
-		// Define field.
+		// Define Field.
 		$field = [
 			'key' => $this->civicrm->acf_field_key_get(),
 			'label' => __( 'CiviCRM Field', 'civicrm-wp-profile-sync' ),
@@ -1214,7 +1214,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant {
 	 *
 	 * @since 0.5
 	 *
-	 * @param array $field The existing field data array.
+	 * @param array $field The existing Field data array.
 	 * @return string|bool $participant_field_name The name of the Participant Field, or false if none.
 	 */
 	public function participant_field_name_get( $field ) {
@@ -1348,7 +1348,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant {
 			return $setting_field;
 		}
 
-		// Get the public fields on the Entity for this Field Type.
+		// Get the public Fields on the Entity for this Field Type.
 		$fields_for_entity = $this->civicrm->participant_field->data_get( $field['type'], 'public' );
 
 		// Get the Custom Fields for this Entity.
@@ -1398,7 +1398,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant {
 			return $choices;
 		}
 
-		// Get the public fields on the Entity for this Field Type.
+		// Get the public Fields on the Entity for this Field Type.
 		$fields_for_entity = $this->civicrm->participant_field->data_get( $field['type'], 'public' );
 
 		// Get the Custom Fields for this Entity.

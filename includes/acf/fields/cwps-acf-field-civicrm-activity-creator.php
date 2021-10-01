@@ -64,7 +64,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Creator extends acf_field {
 	 *
 	 * This must be populated in the class constructor because it is translatable.
 	 *
-	 * Multiple words, can include spaces, visible when selecting a field type.
+	 * Multiple words, can include spaces, visible when selecting a Field Type.
 	 *
 	 * @since 0.4
 	 * @access public
@@ -88,7 +88,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Creator extends acf_field {
 	/**
 	 * Field Type defaults.
 	 *
-	 * Array of default settings which are merged into the field object.
+	 * Array of default settings which are merged into the Field object.
 	 * These are used later in settings.
 	 *
 	 * @since 0.4
@@ -181,12 +181,12 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Creator extends acf_field {
 		// Get the Activity Fields for this ACF Field Type.
 		$activity_fields = $this->acf_loader->civicrm->activity_field->get_for_acf_field( $field );
 
-		// Bail if there are no fields.
+		// Bail if there are no Fields.
 		if ( empty( $activity_fields ) ) {
 			return;
 		}
 
-		// Get Setting field.
+		// Get Setting Field.
 		$setting = $this->acf_loader->civicrm->activity->acf_field_get( [], $activity_fields );
 
 		// Now add it.
@@ -305,10 +305,10 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Creator extends acf_field {
 			return $response;
 		}
 
- 		// Load field.
+ 		// Load Field.
 		$field = acf_get_field( $options['field_key'] );
 
-		// Bail if field did not load.
+		// Bail if Field did not load.
 		if ( ! $field ) {
 			return $response;
 		}
@@ -486,7 +486,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Creator extends acf_field {
 	 *
 	 * @param mixed $value The value found in the database.
 	 * @param integer $post_id The Post ID from which the value was loaded.
-	 * @param array $field The field array holding all the field options.
+	 * @param array $field The Field array holding all the Field options.
 	 * @return mixed $value The modified value.
 	public function load_value( $value, $post_id, $field ) {
 
@@ -505,7 +505,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Creator extends acf_field {
 	 *
 	 * @param mixed $value The value found in the database.
 	 * @param integer $post_id The Post ID from which the value was loaded.
-	 * @param array $field The field array holding all the field options.
+	 * @param array $field The Field array holding all the Field options.
 	 * @return mixed $value The modified value.
 	public function update_value( $value, $post_id, $field ) {
 
@@ -525,7 +525,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Creator extends acf_field {
 	 *
 	 * @param mixed $value The value which was loaded from the database.
 	 * @param mixed $post_id The Post ID from which the value was loaded.
-	 * @param array $field The field array holding all the field options.
+	 * @param array $field The Field array holding all the Field options.
 	 * @return mixed $value The modified value.
 	public function format_value( $value, $post_id, $field ) {
 
@@ -553,15 +553,15 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Creator extends acf_field {
 	/**
 	 * This filter is used to perform validation on the value prior to saving.
 	 *
-	 * All values are validated regardless of the field's required setting.
+	 * All values are validated regardless of the Field's required setting.
 	 * This allows you to validate and return messages to the user if the value
 	 * is not correct.
 	 *
 	 * @since 0.4
 	 *
-	 * @param bool $valid The validation status based on the value and the field's required setting.
+	 * @param bool $valid The validation status based on the value and the Field's required setting.
 	 * @param mixed $value The $_POST value.
-	 * @param array $field The field array holding all the field options.
+	 * @param array $field The Field array holding all the Field options.
 	 * @param string $input The corresponding input name for $_POST value.
 	 * @return string|bool $valid False if not valid, or string for error message.
 	public function validate_value( $valid, $value, $field, $input ) {
@@ -605,8 +605,8 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Creator extends acf_field {
 	 *
 	 * @since 0.4
 	 *
-	 * @param array $field The field array holding all the field options.
-	 * @return array $field The modified field data.
+	 * @param array $field The Field array holding all the Field options.
+	 * @return array $field The modified Field data.
 	public function load_field( $field ) {
 
 		// --<
@@ -622,8 +622,8 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Creator extends acf_field {
 	 *
 	 * @since 0.4
 	 *
-	 * @param array $field The field array holding all the field options.
-	 * @return array $field The modified field data.
+	 * @param array $field The Field array holding all the Field options.
+	 * @return array $field The modified Field data.
 	public function update_field( $field ) {
 
 		// --<
@@ -639,7 +639,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Activity_Creator extends acf_field {
 	 *
 	 * @since 0.4
 	 *
-	 * @param array $field The field array holding all the field options.
+	 * @param array $field The Field array holding all the Field options.
 	public function delete_field( $field ) {
 
 	}

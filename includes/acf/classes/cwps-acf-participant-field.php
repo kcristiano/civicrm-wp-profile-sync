@@ -165,7 +165,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 			return $valid;
 		}
 
-		// Validate depending on the field name.
+		// Validate depending on the Field name.
 		switch ( $participant_field_name ) {
 
 			/*
@@ -270,7 +270,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 	 * @param array $name The Participant Field name.
 	 * @param string $selector The ACF Field selector.
 	 * @param integer|string $post_id The ACF "Post ID".
-	 * @return mixed $value The formatted field value.
+	 * @return mixed $value The formatted Field value.
 	 */
 	public function value_get_for_acf( $value, $name, $selector, $post_id ) {
 
@@ -328,7 +328,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 			case 'date_picker' :
 			case 'date_time_picker' :
 
-				// Get field setting.
+				// Get Field setting.
 				$acf_setting = get_field_object( $selector, $post_id );
 
 				// Date Picker test.
@@ -400,7 +400,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 	 * @since 0.5
 	 *
 	 * @param string $name The name of the Participant Field.
-	 * @return array $options The array of field options.
+	 * @return array $options The array of Field options.
 	 */
 	public function options_get( $name ) {
 
@@ -556,10 +556,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 		// Init return.
 		$participant_fields = [];
 
-		// Get field group for this field's parent.
+		// Get Field Group for this Field's parent.
 		$field_group = $this->acf_loader->acf->field_group->get_for_field( $field );
 
-		// Bail if there's no field group.
+		// Bail if there's no Field Group.
 		if ( empty( $field_group ) ) {
 			return $participant_fields;
 		}
@@ -575,7 +575,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 		// Loop through the Post Types.
 		foreach ( $is_participant_field_group as $post_type_name ) {
 
-			// Get public fields of this type.
+			// Get public Fields of this type.
 			$participant_fields_for_type = $this->data_get( $field['type'], 'public' );
 
 			// Merge with return array.
@@ -599,8 +599,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 	 *
 	 * @since 0.5
 	 *
-	 * @param string $name The name of the field.
-	 * @return array $field The array of field data.
+	 * @param string $name The name of the Field.
+	 * @return array $field The array of Field data.
 	 */
 	public function get_by_name( $name ) {
 
@@ -648,8 +648,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 	 * @since 0.5
 	 *
 	 * @param string $field_type The type of ACF Field.
-	 * @param string $filter The token by which to filter the array of fields.
-	 * @return array $fields The array of field names.
+	 * @param string $filter The token by which to filter the array of Fields.
+	 * @return array $fields The array of Field names.
 	 */
 	public function data_get( $field_type = '', $filter = 'none' ) {
 
@@ -734,7 +734,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 	 * @since 0.5
 	 *
 	 * @param string $type The type of ACF Field.
-	 * @return array $fields The array of field names.
+	 * @return array $fields The array of Field names.
 	 */
 	public function get_by_acf_type( $type = '' ) {
 
@@ -882,7 +882,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Participant_Field {
 		// We only have a few to account for.
 		$date_fields = [ 'register_date' ];
 
-		// If it's one of our fields.
+		// If it's one of our Fields.
 		if ( in_array( $name, $date_fields ) ) {
 
 			// Get the "Participant Date Time" preference.

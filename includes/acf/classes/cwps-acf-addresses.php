@@ -50,7 +50,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Addresses extends CiviCRM_Profile_Sync_AC
 	public $civicrm;
 
 	/**
-	 * "CiviCRM Addresses" field key in the ACF Field data.
+	 * "CiviCRM Addresses" Field key in the ACF Field data.
 	 *
 	 * @since 0.4
 	 * @access public
@@ -255,15 +255,15 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Addresses extends CiviCRM_Profile_Sync_AC
 		// Init success.
 		$success = true;
 
-		// Bail if we have no field data to save.
+		// Bail if we have no Field data to save.
 		if ( empty( $args['fields'] ) ) {
 			return $success;
 		}
 
-		// Loop through the field data.
+		// Loop through the Field data.
 		foreach ( $args['fields'] as $field => $value ) {
 
-			// Get the field settings.
+			// Get the Field settings.
 			$settings = get_field_object( $field, $args['post_id'] );
 
 			// Maybe update an Address Record.
@@ -395,9 +395,9 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Addresses extends CiviCRM_Profile_Sync_AC
 		$address_data['field_address_primary'] = empty( $value->is_primary ) ? '0' : '1';
 		$address_data['field_address_billing'] = empty( $value->is_billing ) ? '0' : '1';
 		$address_data['field_address_street_address'] = trim( $value->street_address );
-		$address_data['field_address_supplemental_address_1'] = $this->civicrm->denullify( $address_1 );
-		$address_data['field_address_supplemental_address_2'] = $this->civicrm->denullify( $address_2 );
-		$address_data['field_address_supplemental_address_3'] = $this->civicrm->denullify( $address_3 );
+		$address_data['field_address_supplemental_address_1'] = $this->plugin->civicrm->denullify( $address_1 );
+		$address_data['field_address_supplemental_address_2'] = $this->plugin->civicrm->denullify( $address_2 );
+		$address_data['field_address_supplemental_address_3'] = $this->plugin->civicrm->denullify( $address_3 );
 		$address_data['field_address_city'] = empty( $value->city ) ? '' : trim( $value->city );
 		$address_data['field_address_postal_code'] = empty( $value->postal_code ) ? '' : trim( $value->postal_code );
 		$address_data['field_address_country_id'] = empty( $value->country_id ) ? '' : (int) $value->country_id;
@@ -1005,10 +1005,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Addresses extends CiviCRM_Profile_Sync_AC
 		// Init return.
 		$location_types = [];
 
-		// Get field group for this field's parent.
+		// Get Field group for this Field's parent.
 		$field_group = $this->acf_loader->acf->field_group->get_for_field( $field );
 
-		// Bail if there's no field group.
+		// Bail if there's no Field group.
 		if ( empty( $field_group ) ) {
 			return $location_types;
 		}
@@ -1094,7 +1094,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Addresses extends CiviCRM_Profile_Sync_AC
 	 * Sync new CiviCRM Address data back to the ACF Fields on a WordPress Post.
 	 *
 	 * The Address ID needs to be reverse-synced to the relevant array element
-	 * in the field. Addresses may be run through geolocation, so also include
+	 * in the Field. Addresses may be run through geolocation, so also include
 	 * that data if it exists.
 	 *
 	 * @since 0.4

@@ -65,7 +65,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_ID_Field extends acf_field {
 	 *
 	 * This must be populated in the class constructor because it is translatable.
 	 *
-	 * Multiple words, can include spaces, visible when selecting a field type.
+	 * Multiple words, can include spaces, visible when selecting a Field Type.
 	 *
 	 * @since 0.4
 	 * @access public
@@ -89,7 +89,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_ID_Field extends acf_field {
 	/**
 	 * Field Type defaults.
 	 *
-	 * Array of default settings which are merged into the field object.
+	 * Array of default settings which are merged into the Field object.
 	 * These are used later in settings.
 	 *
 	 * @since 0.4
@@ -170,7 +170,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_ID_Field extends acf_field {
 	 */
 	public function render_field( $field ) {
 
-		// Change Field into a simple number field.
+		// Change Field into a simple "number" Field.
 		$field['type'] = 'number';
 		$field['readonly'] = 1;
 		$field['allow_null'] = 0;
@@ -178,13 +178,13 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_ID_Field extends acf_field {
 		$field['append'] = '';
 		$field['step'] = '';
 
-		// Populate field.
+		// Populate Field.
 		if ( ! empty( $field['value'] ) ) {
 
 			// Cast value to an integer.
 			$contact_id = (int) $field['value'];
 
-			// Apply Contact ID to field.
+			// Apply Contact ID to Field.
 			$field['value'] = $contact_id;
 
 		}
@@ -203,7 +203,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_ID_Field extends acf_field {
 	 *
 	 * @param mixed $value The value found in the database.
 	 * @param integer|string $post_id The ACF "Post ID" from which the value was loaded.
-	 * @param array $field The field array holding all the field options.
+	 * @param array $field The Field array holding all the Field options.
 	 * @return mixed $value The modified value.
 	 */
 	public function load_value( $value, $post_id, $field ) {
@@ -235,7 +235,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_ID_Field extends acf_field {
 	 *
 	 * @param mixed $value The value found in the database.
 	 * @param integer $post_id The Post ID from which the value was loaded.
-	 * @param array $field The field array holding all the field options.
+	 * @param array $field The Field array holding all the Field options.
 	 * @return mixed $value The modified value.
 	 */
 	public function update_value( $value, $post_id, $field ) {
@@ -268,7 +268,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_ID_Field extends acf_field {
 	 *
 	 * @param mixed $value The value which was loaded from the database.
 	 * @param mixed $post_id The Post ID from which the value was loaded.
-	 * @param array $field The field array holding all the field options.
+	 * @param array $field The Field array holding all the Field options.
 	 * @return mixed $value The modified value.
 	public function format_value( $value, $post_id, $field ) {
 
@@ -296,15 +296,15 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_ID_Field extends acf_field {
 	/**
 	 * This filter is used to perform validation on the value prior to saving.
 	 *
-	 * All values are validated regardless of the field's required setting.
+	 * All values are validated regardless of the Field's required setting.
 	 * This allows you to validate and return messages to the user if the value
 	 * is not correct.
 	 *
 	 * @since 0.4
 	 *
-	 * @param bool $valid The validation status based on the value and the field's required setting.
+	 * @param bool $valid The validation status based on the value and the Field's required setting.
 	 * @param mixed $value The $_POST value.
-	 * @param array $field The field array holding all the field options.
+	 * @param array $field The Field array holding all the Field options.
 	 * @param string $input The corresponding input name for $_POST value.
 	 * @return string|bool $valid False if not valid, or string for error message.
 	public function validate_value( $valid, $value, $field, $input ) {
@@ -348,8 +348,8 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_ID_Field extends acf_field {
 	 *
 	 * @since 0.4
 	 *
-	 * @param array $field The field array holding all the field options.
-	 * @return array $field The modified field data.
+	 * @param array $field The Field array holding all the Field options.
+	 * @return array $field The modified Field data.
 	public function load_field( $field ) {
 
 		// --<
@@ -365,8 +365,8 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_ID_Field extends acf_field {
 	 *
 	 * @since 0.4
 	 *
-	 * @param array $field The field array holding all the field options.
-	 * @return array $field The modified field data.
+	 * @param array $field The Field array holding all the Field options.
+	 * @return array $field The modified Field data.
 	public function update_field( $field ) {
 
 		// --<
@@ -382,7 +382,7 @@ class CiviCRM_Profile_Sync_Custom_CiviCRM_Contact_ID_Field extends acf_field {
 	 *
 	 * @since 0.4
 	 *
-	 * @param array $field The field array holding all the field options.
+	 * @param array $field The Field array holding all the Field options.
 	public function delete_field( $field ) {
 
 	}

@@ -94,7 +94,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 	];
 
 	/**
-	 * "CiviCRM Field" field value prefix in the BuddyPress Field data.
+	 * "CiviCRM Field" Field value prefix in the BuddyPress Field data.
 	 *
 	 * This distinguishes Custom Fields from Contact Fields.
 	 *
@@ -167,26 +167,19 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 		add_filter( 'cwps/bp/field/query_options', [ $this, 'multiselect_settings_get' ], 10, 3 );
 		add_filter( 'cwps/bp/field/query_options', [ $this, 'radio_settings_get' ], 10, 3 );
 
-		// Filter the xProfile Field settings when saving on the "Edit Field" screen.
+		// TODO: Filter the xProfile Field settings when saving on the "Edit Field" screen.
 		//add_filter( 'cwps/bp/field/query_options', [ $this, 'date_settings_get' ], 10, 3 );
 		//add_filter( 'cwps/bp/field/query_options', [ $this, 'text_settings_get' ], 10, 3 );
+
+		// Intercept when the content of a set of CiviCRM Custom Fields has been updated.
+		add_action( 'cwps/mapper/custom_edited', [ $this, 'custom_edited' ], 10 );
 
 		return;
 
 
 
-
-		// Intercept when the content of a set of CiviCRM Custom Fields has been updated.
-		add_action( 'cwps/bp/mapper/civicrm/custom/edited', [ $this, 'custom_edited' ], 10 );
-
 		// Intercept Post synced from Contact events.
 		add_action( 'cwps/bp/post/contact_sync_to_post', [ $this, 'contact_sync_to_post' ], 10 );
-
-		// Intercept Post synced from Activity events.
-		//add_action( 'cwps/bp/post/activity/sync', [ $this, 'activity_sync_to_post' ], 10 );
-
-		// Intercept Post synced from Participant events.
-		//add_action( 'cwps/bp/post/participant/sync', [ $this, 'participant_sync_to_post' ], 10 );
 
 	}
 
@@ -377,25 +370,190 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 
 
 	/**
+	 * Update BuddyPress Fields when a set of CiviCRM Custom Fields has been updated.
+	 *
+	 * @since 0.5
+	 *
+	 * @param array $args The array of CiviCRM params.
+	 */
+	public function custom_edited( $args ) {
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'args' => $args,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		// Init User IDs.
+		$user_id = false;
+
+		/**
+		 * Query for the User ID that this set of Custom Fields is mapped to.
+		 *
+		 * This filter sends out a request for other classes to respond with a
+		 * User ID if they detect that the set of Custom Fields maps to an
+		 * Entity Type that they are responsible for.
+		 *
+		 * Internally, this is used by:
+		 *
+		 * - BuddyPress CiviCRM Contact
+		 * - BuddyPress CiviCRM Address
+		 *
+		 * More classes to follow as sync for those Entities is built.
+		 *
+		 * @since 0.5
+		 *
+		 * @param bool $user_id False, since we're asking for the User ID.
+		 * @param array $args The array of CiviCRM Custom Fields params.
+		 */
+		$user_id = apply_filters( 'cwps/bp/query_user_id', $user_id, $args );
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'user_id' => $user_id,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		// Bail if we can't find a User ID.
+		if ( $user_id === false ) {
+			return;
+		}
+
+		// Get the BuddyPress Fields for this User.
+		$bp_fields = $this->xprofile->fields_get_for_user( $user_id );
+
+		// Bail if we don't find any Fields.
+		if ( empty( $bp_fields ) ) {
+			return;
+		}
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'bp_fields' => $bp_fields,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		// Filter out Fields not mapped to a CiviCRM Custom Field.
+		$bp_fields_mapped = [];
+		foreach ( $bp_fields as $bp_field ) {
+			$bp_field_mapping = $bp_field['field_meta']['value'];
+			$custom_field_id = $this->id_get( $bp_field_mapping );
+			if ( $custom_field_id === false ) {
+				continue;
+			}
+			$bp_field['custom_field_id'] = $custom_field_id;
+			$bp_fields_mapped[] = $bp_field;
+		}
+
+		/*
+		$e = new \Exception();
+		$trace = $e->getTraceAsString();
+		error_log( print_r( [
+			'method' => __METHOD__,
+			'bp_fields_mapped' => $bp_fields_mapped,
+			//'backtrace' => $trace,
+		], true ) );
+		*/
+
+		// Bail if we don't have any left.
+		if ( empty( $bp_fields_mapped ) ) {
+			return;
+		}
+
+		// Build a reference array for Custom Fields.
+		$custom_fields = [];
+		foreach ( $args['custom_fields'] as $key => $field ) {
+			$custom_fields[$key] = $field['custom_field_id'];
+		}
+
+		// Let's look at each BuddyPress Field in turn.
+		foreach ( $bp_fields_mapped as $bp_field ) {
+
+			// Skip if it isn't mapped to an edited Custom Field.
+			if ( ! in_array( $bp_field['custom_field_id'], $custom_fields ) ) {
+				continue;
+			}
+
+			// Get the corresponding Custom Field.
+			$args_key = array_search( $bp_field['custom_field_id'], $custom_fields );
+			$field = $args['custom_fields'][$args_key];
+
+			/*
+			$e = new \Exception();
+			$trace = $e->getTraceAsString();
+			error_log( print_r( [
+				'method' => __METHOD__,
+				'field' => $field,
+				//'backtrace' => $trace,
+			], true ) );
+			*/
+
+			// Modify values for BuddyPress prior to update.
+			$value = $this->value_get_for_bp( $field['value'], $field, $bp_field );
+
+			/*
+			$e = new \Exception();
+			$trace = $e->getTraceAsString();
+			error_log( print_r( [
+				'method' => __METHOD__,
+				'value' => $value,
+				//'args' => $args,
+				//'backtrace' => $trace,
+			], true ) );
+			*/
+
+			// Okay, go ahead and save the value to the xProfile Field.
+			$result = xprofile_set_field_data( $bp_field['field_id'], $user_id, $value );
+
+		}
+
+		// Add the User ID to the params.
+		$args['user_id'] = $user_id;
+
+		/**
+		 * Broadcast that a set of CiviCRM Custom Fields may have been updated.
+		 *
+		 * @since 0.5
+		 *
+		 * @param array $args The array of CiviCRM params.
+		 */
+		do_action( 'cwps/bp/civicrm/custom_field/custom_edited', $args );
+
+	}
+
+
+
+	/**
 	 * Get the value of a Custom Field, formatted for BuddyPress.
 	 *
 	 * @since 0.5
 	 *
-	 * @param mixed $value The Custom Field value.
-	 * @param array $field The Custom Field data.
-	 * @param string $selector The BuddyPress Field selector.
-	 * @param integer|string $post_id The BuddyPress "Post ID".
-	 * @return mixed $value The formatted field value.
+	 * @param mixed $value The CiviCRM Custom Field value.
+	 * @param array $field The CiviCRM Custom Field data.
+	 * @param $params The array of BuddyPress Field params.
+	 * @return mixed $value The value formatted for BuddyPress.
 	 */
-	public function value_get_for_bp( $value, $field, $selector, $post_id ) {
+	public function value_get_for_bp( $value, $field, $params ) {
 
 		// Bail if empty.
 		if ( empty( $value ) ) {
 			return $value;
 		}
 
-		// Convert CiviCRM value to BuddyPress value by field type.
-		switch( $field->type ) {
+		// Convert CiviCRM value to BuddyPress value by Field Type.
+		switch( $field['type'] ) {
 
 			// Used by "CheckBox" and others.
 			case 'String' :
@@ -411,14 +569,14 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 
 				break;
 
-			// Contact Reference fields may return the Contact's "sort_name".
+			// Contact Reference Fields may return the Contact's "sort_name".
 			case 'ContactReference' :
 
 				// Test for a numeric value.
 				if ( ! is_numeric( $value ) ) {
 
 					/*
-					 * This definitely happens when Contact Reference fields are
+					 * This definitely happens when Contact Reference Fields are
 					 * attached to Events - when retrieving the Event from the
 					 * CiviCRM API, the Custom Field values are helpfully added
 					 * to the returned data. However, the value in "custom_N" is
@@ -446,16 +604,21 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 			// Used by "Date Select" and  "Date Time Select".
 			case 'Timestamp' :
 
-				// Get field setting.
-				$bp_setting = get_field_object( $selector, $post_id );
-
-				// Convert to BuddyPress format.
+				// Custom Fields use a YmdHis format, so try that.
 				$datetime = DateTime::createFromFormat( 'YmdHis', $value );
-				if ( $bp_setting['type'] == 'date_picker' ) {
-					$value = $datetime->format( 'Ymd' );
-				} elseif ( $bp_setting['type'] == 'date_time_picker' ) {
-					$value = $datetime->format( 'Y-m-d H:i:s' );
+
+				// Convert to BuddyPress format which cannot have "H:m:s".
+				if ( $datetime !== false ) {
+					$value = $datetime->format( 'Y-m-d' ) . ' 00:00:00';
 				}
+
+				break;
+
+			// Used by "Note" and maybe others.
+			case 'Memo' :
+
+				// At minimum needs an unautop.
+				$value = $this->unautop( $value );
 
 				break;
 
@@ -522,6 +685,61 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 
 
 
+	/**
+	 * Replaces paragraph elements with double line-breaks.
+	 *
+	 * This is the inverse behavior of the wpautop() function found in WordPress
+	 * which converts double line-breaks to paragraphs. Handy when you want to
+	 * undo whatever it did.
+	 *
+	 * Code via Frankie Jarrett on GitHub.
+	 *
+	 * @link https://gist.github.com/fjarrett/ecddd0ed419bb853e390
+	 *
+	 * @since 0.5
+	 *
+	 * @param string $pee
+	 * @param bool $br (optional)
+	 * @return string
+	 */
+	public function unautop( $pee, $br = true ) {
+
+		// Match plain <p> tags and their contents (ignore <p> tags with attributes).
+		$matches = preg_match_all( '/<(p+)*(?:>(.*)<\/\1>|\s+\/>)/m', $pee, $pees );
+
+		// Bail if no matches.
+		if ( ! $matches ) {
+			return $pee;
+		}
+
+		// Init replacements array.
+		$replace = [
+			"\n" => '',
+			"\r" => '',
+		];
+
+		// Maybe add breaks to replacements array.
+		if ( $br ) {
+			$replace['<br>'] = "\r\n";
+			$replace['<br/>'] = "\r\n";
+			$replace['<br />'] = "\r\n";
+		}
+
+		// Build keyed replacements.
+		foreach ( $pees[2] as $i => $tinkle ) {
+			$replace[ $pees[0][ $i ] ] = $tinkle . "\r\n\r\n";
+		}
+
+		// Do replacements.
+		$replaced = str_replace( array_keys( $replace ), array_values( $replace ), $pee );
+
+		// --<
+		return rtrim( $replaced );
+
+	}
+
+
+
 	// -------------------------------------------------------------------------
 
 
@@ -564,7 +782,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 	 * @since 0.5
 	 *
 	 * @param string $custom_field_id The numeric ID of the CiviCRM Custom Field.
-	 * @return array $choices The choices for the field.
+	 * @return array $choices The choices for the Field.
 	 */
 	public function checkbox_choices_get( $custom_field_id ) {
 
@@ -618,7 +836,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 			return $filtered_fields;
 		}
 
-		// Filter fields to include only Boolean/Radio.
+		// Filter Fields to include only Boolean/Radio.
 		foreach ( $custom_fields as $custom_group_name => $custom_group ) {
 			foreach ( $custom_group as $custom_field ) {
 				if ( ! empty( $custom_field['data_type'] ) && $custom_field['data_type'] == 'String' ) {
@@ -674,7 +892,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 	 * @since 0.5
 	 *
 	 * @param string $custom_field_id The numeric ID of the CiviCRM Custom Field.
-	 * @return array $choices The choices for the field.
+	 * @return array $choices The choices for the Field.
 	 */
 	public function select_choices_get( $custom_field_id ) {
 
@@ -744,16 +962,16 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 		// BuddyPress has no "Autocomplete-Select".
 		if ( $field['ui'] == 1 && $field['ajax'] == 1 ) {
 
-			// Filter fields to include only Autocomplete-Select.
+			// Filter Fields to include only Autocomplete-Select.
 			$select_types = [ 'Autocomplete-Select' ];
 
 		}
 		*/
 
-		// Filter fields to include only "Select" types.
+		// Filter Fields to include only "Select" types.
 		$select_types = [ 'Select', 'Select Country', 'Select State/Province' ];
 
-		// Filter fields to include only those which are compatible.
+		// Filter Fields to include only those which are compatible.
 		foreach ( $custom_fields as $custom_group_name => $custom_group ) {
 			foreach ( $custom_group as $custom_field ) {
 				if ( ! empty( $custom_field['data_type'] ) && in_array( $custom_field['data_type'], $this->data_types ) ) {
@@ -820,10 +1038,10 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 			return $filtered_fields;
 		}
 
-		// Filter fields to include only "Multi-Select" types.
+		// Filter Fields to include only "Multi-Select" types.
 		$select_types = [ 'Multi-Select', 'Multi-Select Country', 'Multi-Select State/Province' ];
 
-		// Filter fields to include only those which are compatible.
+		// Filter Fields to include only those which are compatible.
 		foreach ( $custom_fields as $custom_group_name => $custom_group ) {
 			foreach ( $custom_group as $custom_field ) {
 				if ( ! empty( $custom_field['data_type'] ) && in_array( $custom_field['data_type'], $this->data_types ) ) {
@@ -879,7 +1097,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 	 * @since 0.5
 	 *
 	 * @param string $custom_field_id The numeric ID of the CiviCRM Custom Field.
-	 * @return array $choices The choices for the field.
+	 * @return array $choices The choices for the Field.
 	 */
 	public function radio_choices_get( $custom_field_id ) {
 
@@ -933,7 +1151,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 			return $filtered_fields;
 		}
 
-		// Filter fields to include only "Radio" HTML types.
+		// Filter Fields to include only "Radio" HTML types.
 		foreach ( $custom_fields as $custom_group_name => $custom_group ) {
 			foreach ( $custom_group as $custom_field ) {
 				if ( ! empty( $custom_field['data_type'] ) && in_array( $custom_field['data_type'], $this->data_types ) ) {
@@ -968,7 +1186,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 			return $filtered_fields;
 		}
 
-		// Filter fields to include only Date/Select Date.
+		// Filter Fields to include only Date/Select Date.
 		foreach ( $custom_fields as $custom_group_name => $custom_group ) {
 			foreach ( $custom_group as $custom_field ) {
 				if ( ! empty( $custom_field['data_type'] ) && $custom_field['data_type'] == 'Date' ) {
@@ -1036,7 +1254,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 			return $filtered_fields;
 		}
 
-		// Filter fields to include only those of HTML type "Text".
+		// Filter Fields to include only those of HTML type "Text".
 		foreach ( $custom_fields as $custom_group_name => $custom_group ) {
 			foreach ( $custom_group as $custom_field ) {
 				if ( ! empty( $custom_field['data_type'] ) && in_array( $custom_field['data_type'], $this->data_types ) ) {
@@ -1073,7 +1291,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 			return $filtered_fields;
 		}
 
-		// Filter fields to include only Memo/RichTextEditor.
+		// Filter Fields to include only Memo/RichTextEditor.
 		foreach ( $custom_fields as $custom_group_name => $custom_group ) {
 			foreach ( $custom_group as $custom_field ) {
 				if ( ! empty( $custom_field['data_type'] ) && $custom_field['data_type'] == 'Memo' ) {
@@ -1108,7 +1326,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 			return $filtered_fields;
 		}
 
-		// Filter fields to include only "Link".
+		// Filter Fields to include only "Link".
 		foreach ( $custom_fields as $custom_group_name => $custom_group ) {
 			foreach ( $custom_group as $custom_field ) {
 				if ( ! empty( $custom_field['data_type'] ) && $custom_field['data_type'] == 'Link' ) {
@@ -1121,285 +1339,6 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
 
 		// --<
 		return $filtered_fields;
-
-	}
-
-
-
-	// -------------------------------------------------------------------------
-	// -------------------------------------------------------------------------
-	// -------------------------------------------------------------------------
-	public function _____divider() {}
-	// -------------------------------------------------------------------------
-	// -------------------------------------------------------------------------
-	// -------------------------------------------------------------------------
-
-
-
-	/**
-	 * Intercept when a Post has been updated from a Contact via the Mapper.
-	 *
-	 * Sync any associated BuddyPress Fields mapped to Custom Fields.
-	 *
-	 * @since 0.5
-	 *
-	 * @param array $args The array of CiviCRM Contact and WordPress Post params.
-	 */
-	public function contact_sync_to_post( $args ) {
-
-		// Get the Custom Fields for this CiviCRM Contact.
-		$custom_fields_for_contact = $this->plugin->civicrm->custom_field->get_for_contact( $args['objectRef'] );
-
-		// Bail if we don't have any Custom Fields for this Contact.
-		if ( empty( $custom_fields_for_contact ) ) {
-			return;
-		}
-
-		// Get the Custom Field IDs for this Contact.
-		$custom_field_ids = $this->ids_get_by_contact_id( $args['objectId'], $args['post_type'] );
-
-		// Filter the Custom Fields array.
-		$filtered = [];
-		foreach ( $custom_field_ids as $selector => $custom_field_id ) {
-			foreach ( $custom_fields_for_contact as $key => $custom_field_data ) {
-				if ( $custom_field_data['id'] == $custom_field_id ) {
-					$filtered[$selector] = $custom_field_data;
-					break;
-				}
-			}
-		}
-
-		// Extract the Custom Field mappings.
-		$custom_field_mappings = wp_list_pluck( $filtered, 'id' );
-
-		// Get the Custom Field values for this Contact.
-		$custom_field_values = $this->plugin->civicrm->custom_field->values_get_by_contact_id( $args['objectId'], $custom_field_mappings );
-
-		// Build a final data array.
-		$final = [];
-		foreach ( $filtered as $key => $custom_field ) {
-			$custom_field['value'] = $custom_field_values[$custom_field['id']];
-			$custom_field['type'] = $custom_field['data_type'];
-			$final[$key] = $custom_field;
-		}
-
-		// Let's populate each BuddyPress Field in turn.
-		foreach ( $final as $selector => $field ) {
-
-			// Modify values for BuddyPress prior to update.
-			$value = $this->value_get_for_bp(
-				$field['value'],
-				$field,
-				$selector,
-				$args['post_id']
-			);
-
-			// Update the BuddyPress Field.
-			$this->bp_loader->bp->field->value_update( $selector, $value, $args['post_id'] );
-
-		}
-
-	}
-
-
-
-	/**
-	 * Get the Custom Field correspondences for a given Contact ID and Post Type.
-	 *
-	 * @since 0.5
-	 *
-	 * @param integer $contact_id The numeric ID of the CiviCRM Contact.
-	 * @param string $post_type The WordPress Post Type.
-	 * @return array $custom_field_ids The array of found Custom Field IDs.
-	 */
-	public function ids_get_by_contact_id( $contact_id, $post_type ) {
-
-		// Init return.
-		$custom_field_ids = [];
-
-		// Grab Contact.
-		$contact = $this->plugin->civicrm->contact->get_by_id( $contact_id );
-		if ( $contact === false ) {
-			return $custom_field_ids;
-		}
-
-		// Get the Post ID that this Contact is mapped to.
-		$post_id = $this->civicrm->contact->is_mapped_to_post( $contact, $post_type );
-		if ( $post_id === false ) {
-			return $custom_field_ids;
-		}
-
-		// Get all fields for the Post.
-		$bp_fields = $this->bp_loader->bp->field->fields_get_for_post( $post_id );
-
-		// Bail if we don't have any Custom Fields.
-		if ( empty( $bp_fields['custom'] ) ) {
-			return $custom_field_ids;
-		}
-
-		// Build the array of Custom Field IDs, keyed by BuddyPress selector.
-		foreach ( $bp_fields['custom'] as $selector => $field ) {
-			$custom_field_ids[$selector] = $field;
-		}
-
-		// --<
-		return $custom_field_ids;
-
-	}
-
-
-
-	// -------------------------------------------------------------------------
-
-
-
-	/**
-	 * Update BuddyPress Fields when a set of CiviCRM Custom Fields has been updated.
-	 *
-	 * @since 0.5
-	 *
-	 * @param array $args The array of CiviCRM params.
-	 */
-	public function custom_edited( $args ) {
-
-		// Init Post IDs.
-		$post_ids = false;
-
-		/**
-		 * Query for the Post IDs that this set of Custom Fields are mapped to.
-		 *
-		 * This filter sends out a request for other classes to respond with a
-		 * Post ID if they detect that the set of Custom Fields maps to an
-		 * Entity Type that they are responsible for.
-		 *
-		 * When a Contact is created, however, the synced Post has not yet been
-		 * created because the "civicrm_custom" hook fires before "civicrm_post"
-		 * fires and so the Post ID will always be false.
-		 *
-		 * Internally, this is used by:
-		 *
-		 * @see CiviCRM_Profile_Sync_BP_CiviCRM_Contact::query_post_id()
-		 * @see CiviCRM_Profile_Sync_BP_CiviCRM_Activity::query_post_id()
-		 *
-		 * @since 0.5
-		 *
-		 * @param bool $post_ids False, since we're asking for Post IDs.
-		 * @param array $args The array of CiviCRM Custom Fields params.
-		 * @return array|bool $post_ids The array of mapped Post IDs, or false if not mapped.
-		 */
-		$post_ids = apply_filters( 'cwps/bp/query_post_id', $post_ids, $args );
-
-		// Process the Post IDs that we get.
-		if ( $post_ids !== false ) {
-
-			// Handle each Post ID in turn.
-			foreach ( $post_ids as $post_id ) {
-
-				// Get the BuddyPress Fields for this Post.
-				$bp_fields = $this->bp_loader->bp->field->fields_get_for_post( $post_id );
-
-				// Bail if we don't have any Custom Fields.
-				if ( empty( $bp_fields['custom'] ) ) {
-					continue;
-				}
-
-				// Build a reference array for Custom Fields.
-				$custom_fields = [];
-				foreach ( $args['custom_fields'] as $key => $field ) {
-					$custom_fields[$key] = $field['custom_field_id'];
-				}
-
-				// Let's look at each BuddyPress Field in turn.
-				foreach ( $bp_fields['custom'] as $selector => $custom_field_ref ) {
-
-					// Skip if it isn't mapped to a Custom Field.
-					if ( ! in_array( $custom_field_ref, $custom_fields ) ) {
-						continue;
-					}
-
-					// Get the corresponding Custom Field.
-					$args_key = array_search( $custom_field_ref, $custom_fields );
-					$field = $args['custom_fields'][$args_key];
-
-					// Modify values for BuddyPress prior to update.
-					$value = $this->value_get_for_bp(
-						$field['value'],
-						$field,
-						$selector,
-						$post_id
-					);
-
-					// Update it.
-					$this->bp_loader->bp->field->value_update( $selector, $value, $post_id );
-
-				}
-
-			}
-
-		}
-
-		/**
-		 * Broadcast that a set of CiviCRM Custom Fields may have been updated.
-		 *
-		 * @since 0.5
-		 *
-		 * @param array|bool $post_ids The array of mapped Post IDs, or false if not mapped.
-		 * @param array $args The array of CiviCRM params.
-		 */
-		do_action( 'cwps/bp/civicrm/custom_field/custom_edited', $post_ids, $args );
-
-	}
-
-
-
-	// -------------------------------------------------------------------------
-
-
-
-	/**
-	 * Get the CiviCRM Custom Fields for a BuddyPress Field.
-	 *
-	 * @since 0.5
-	 *
-	 * @param object $field The BuddyPress Field data object.
-	 * @return array $custom_fields The array of Custom Fields.
-	 */
-	public function get_for_bp_field( $field ) {
-
-		// Init return.
-		$custom_fields = [];
-
-		// Get field group for this field's parent.
-		$field_group = $this->bp_loader->bp->field_group->get_for_field( $field );
-
-		// Bail if there's no field group.
-		if ( empty( $field_group ) ) {
-			return $custom_fields;
-		}
-
-		/**
-		 * Query for the Custom Fields that this BuddyPress Field can be mapped to.
-		 *
-		 * This filter sends out a request for other classes to respond with an
-		 * array of Fields if they detect that the set of Custom Fields maps to
-		 * an Entity Type that they are responsible for.
-		 *
-		 * Internally, this is used by:
-		 *
-		 * @see CiviCRM_Profile_Sync_BP_CiviCRM_Contact::query_custom_fields()
-		 * @see CiviCRM_Profile_Sync_BP_CiviCRM_Activity::query_custom_fields()
-		 * @see CiviCRM_Profile_Sync_BP_CiviCRM_Participant::query_custom_fields()
-		 *
-		 * @since 0.5
-		 *
-		 * @param array $custom_fields Empty by default.
-		 * @param array $field_group The array of BuddyPress Field Group data.
-		 * @param array $custom_fields The populated array of CiviCRM Custom Fields params.
-		 */
-		$custom_fields = apply_filters( 'cwps/bp/query_custom_fields', $custom_fields, $field_group );
-
-		// --<
-		return $custom_fields;
 
 	}
 

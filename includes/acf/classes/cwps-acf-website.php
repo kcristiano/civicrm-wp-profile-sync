@@ -50,7 +50,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 	public $civicrm;
 
 	/**
-	 * "CiviCRM Website" field key in the ACF Field data.
+	 * "CiviCRM Website" Field key in the ACF Field data.
 	 *
 	 * @since 0.4
 	 * @access public
@@ -59,7 +59,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 	public $acf_field_key = 'field_cacf_civicrm_website';
 
 	/**
-	 * "CiviCRM Field" field value prefix in the ACF Field data.
+	 * "CiviCRM Field" Field value prefix in the ACF Field data.
 	 *
 	 * This distinguishes Website Fields from Custom Fields.
 	 *
@@ -210,7 +210,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 	 */
 	public function fields_handled_update( $args ) {
 
-		// Bail if we have no field data to save.
+		// Bail if we have no Field data to save.
 		if ( empty( $args['fields'] ) ) {
 			return true;
 		}
@@ -218,10 +218,10 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 		// Init success.
 		$success = true;
 
-		// Loop through the field data.
+		// Loop through the Field data.
 		foreach ( $args['fields'] as $field => $value ) {
 
-			// Get the field settings.
+			// Get the Field settings.
 			$settings = get_field_object( $field, $args['post_id'] );
 
 			// Maybe update a Contact Field.
@@ -270,7 +270,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 			return true;
 		}
 
-		// Parse value by field type.
+		// Parse value by Field Type.
 		$value = $this->acf_loader->acf->field->value_get_for_civicrm( $value, $settings['type'], $settings );
 
 		// The ID of the Website Type is the setting.
@@ -757,8 +757,8 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 	 *
 	 * @since 0.5
 	 *
-	 * @param string $filter The token by which to filter the array of fields.
-	 * @return array $fields The array of field names.
+	 * @param string $filter The token by which to filter the array of Fields.
+	 * @return array $fields The array of Field names.
 	 */
 	public function civicrm_fields_get( $filter = 'none' ) {
 
@@ -942,7 +942,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 			}
 		}
 
-		// Define field.
+		// Define Field.
 		$field = [
 			'key' => $this->acf_field_key_get(),
 			'label' => __( 'CiviCRM Website', 'civicrm-wp-profile-sync' ),
@@ -1114,7 +1114,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Website extends CiviCRM_Profile_Sync_ACF_
 			return $choices;
 		}
 
-		// Get the public fields on the Entity for this Field Type.
+		// Get the public Fields on the Entity for this Field Type.
 		$public_fields = $this->civicrm_fields_get( 'public' );
 		$fields_for_entity = [];
 		foreach ( $public_fields as $key => $value ) {

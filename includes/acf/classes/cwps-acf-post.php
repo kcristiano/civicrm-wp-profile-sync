@@ -1531,8 +1531,8 @@ class CiviCRM_Profile_Sync_ACF_Post {
 		}
 
 		// De-nullify critical values.
-		$activity->subject = $this->acf_loader->civicrm->denullify( $activity->subject );
-		$activity->details = $this->acf_loader->civicrm->denullify( $activity->details );
+		$activity->subject = $this->plugin->civicrm->denullify( $activity->subject );
+		$activity->details = $this->plugin->civicrm->denullify( $activity->details );
 
 		// Define basic Post data.
 		$args = [
@@ -1600,8 +1600,8 @@ class CiviCRM_Profile_Sync_ACF_Post {
 		}
 
 		// De-nullify critical values.
-		$activity->subject = $this->acf_loader->civicrm->denullify( $activity->subject );
-		$activity->details = $this->acf_loader->civicrm->denullify( $activity->details );
+		$activity->subject = $this->plugin->civicrm->denullify( $activity->subject );
+		$activity->details = $this->plugin->civicrm->denullify( $activity->details );
 
 		// Define args to update the Post.
 		$args = [

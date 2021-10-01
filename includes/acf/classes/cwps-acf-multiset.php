@@ -147,15 +147,15 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 		// Init success.
 		$success = true;
 
-		// Bail if we have no field data to save.
+		// Bail if we have no Field data to save.
 		if ( empty( $args['fields'] ) ) {
 			return $success;
 		}
 
-		// Loop through the field data.
+		// Loop through the Field data.
 		foreach ( $args['fields'] as $field => $value ) {
 
-			// Get the field settings.
+			// Get the Field settings.
 			$settings = get_field_object( $field );
 
 			// Maybe update a Multiple Record Set.
@@ -949,6 +949,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 	 */
 	public function get_for_acf_field( $field ) {
 
+		/*
 		$e = new \Exception();
 		$trace = $e->getTraceAsString();
 		error_log( print_r( [
@@ -956,6 +957,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 			'field' => $field,
 			//'backtrace' => $trace,
 		], true ) );
+		*/
 
 		// Init return.
 		$multisets = [];
@@ -1055,7 +1057,7 @@ class CiviCRM_Profile_Sync_ACF_CiviCRM_Multiple_Record_Set extends CiviCRM_Profi
 		 */
 		$choices = apply_filters( 'cwps/acf/civicrm/multiset/choices', $choices );
 
-		// Define field.
+		// Define Field.
 		$field = [
 			'key' => $this->civicrm->acf_field_key_get(),
 			'label' => __( 'CiviCRM Field', 'civicrm-wp-profile-sync' ),
